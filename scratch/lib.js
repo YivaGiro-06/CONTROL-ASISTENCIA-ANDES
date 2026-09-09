@@ -87,7 +87,7 @@ export const periodoDe = (fechaIso) => fechaIso ? fechaIso.slice(0, 7) : null;
 // ---------- lectura de Excel ----------
 // Lee la hoja como matriz cruda. headerRow es 0-indexed.
 export function leerHoja(file, sheetName, headerRow = 0) {
-  const wb = XLSX.readFile(file, { cellDates: true, cellNF: false, cellText: false });
+  const wb = XLSX.readFile(file, { dense: true, cellDates: true, cellNF: false, cellText: false });
   const nombre = sheetName && wb.SheetNames.includes(sheetName) ? sheetName : wb.SheetNames[0];
   if (sheetName && nombre !== sheetName) {
     console.warn(`      ! hoja "${sheetName}" no existe en ${path.basename(file)}, uso "${nombre}"`);
@@ -101,6 +101,7 @@ export function leerHoja(file, sheetName, headerRow = 0) {
 export function resolveCols(headers, spec, etiqueta = '') {
   const norm = headers.map(normHeader);
   const out = {};
+  const usadosIndice = [];
   for (const [campo, cfg] of Object.entries(spec)) {
     const alias = (cfg.headers || []).map(normHeader);
     let porHeader = -1;
@@ -117,13 +118,18 @@ export function resolveCols(headers, spec, etiqueta = '') {
     const porIndice = cfg.index;
     if (porHeader === -1) {
       out[campo] = porIndice;
-      console.warn(`      ! ${etiqueta}: header de "${campo}" no encontrado, uso índice fijo ${porIndice}`);
+      usadosIndice.push(campo);
     } else {
       if (porIndice !== undefined && porHeader !== porIndice) {
-        console.warn(`      ! ${etiqueta}: "${campo}" esperado en col ${porIndice} pero el header está en ${porHeader} — gana el header`);
+        // header encontrado en posición distinta a la esperada
       }
       out[campo] = porHeader;
     }
+  }
+  if (usadosIndice.length > 0 && usadosIndice.length === Object.keys(spec).length) {
+    // Todos usaron índice fijo (típico cuando no hay fila de headers en headerRow)
+  } else if (usadosIndice.length > 0) {
+    console.warn(`      ! ${etiqueta}: uso de índice fijo en campos: ${usadosIndice.join(', ')}`);
   }
   return out;
 }

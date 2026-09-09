@@ -2,6 +2,7 @@
 // Uso: npm run generar
 // Lee los Excel de apartado_*/ y escribe data/*.json (particionado por mes + manifiesto).
 import fs from 'node:fs';
+import path from 'node:path';
 import {
   leerHoja, resolveCols, archivosDe, escribirJSON, escribirParticionado,
   normalizeText, normalizeCedula, parseFecha, parseHoras, periodoDe, validarNombre,
@@ -76,6 +77,7 @@ function procesarGA() {
 
   let discrepancias = 0;
   for (const file of files) {
+    console.log(`      · procesando ${path.basename(file)} (${(fs.statSync(file).size / 1024 / 1024).toFixed(1)} MB)...`);
     const periodosArchivo = new Set();
     const { hoja, headers, filas } = leerHoja(file, 'Información Diaria', 1);
     const C = resolveCols(headers, SPEC_GA, `GA/${hoja}`);
@@ -142,6 +144,7 @@ function procesarAusencias() {
   let leidas = 0, fueraGrupo = 0, invalidas = 0;
   const porMes = new Map();
   for (const file of files) {
+    console.log(`      · procesando ${path.basename(file)} (${(fs.statSync(file).size / 1024 / 1024).toFixed(1)} MB)...`);
     const periodosArchivo = new Set();
     const { hoja, headers, filas } = leerHoja(file, 'Content', 0);
     const C = resolveCols(headers, SPEC_AUS, `Ausencias/${hoja}`);
@@ -184,6 +187,7 @@ function procesarPunch() {
   let leidas = 0, omitidasSolape = 0, invalidas = 0;
   const metodos = new Map(), tipos = new Map();
   for (const file of files) {
+    console.log(`      · procesando ${path.basename(file)} (${(fs.statSync(file).size / 1024 / 1024).toFixed(1)} MB)...`);
     const periodosArchivo = new Set();
     const { hoja, headers, filas } = leerHoja(file, 'Con Marcas', 1);
     const C = resolveCols(headers, SPEC_PUNCH, `Punch/${hoja}`);
@@ -226,6 +230,7 @@ function procesarInconsistencias() {
   const files = archivosDe(CFG.carpetas.inconsistencias);
   let oficiales = 0;
   for (const file of files) {
+    console.log(`      · procesando ${path.basename(file)} (${(fs.statSync(file).size / 1024 / 1024).toFixed(1)} MB)...`);
     const periodosArchivo = new Set();
     const { hoja, headers, filas } = leerHoja(file, 'Content', 5);
     const C = resolveCols(headers, SPEC_INC, `Incon/${hoja}`);

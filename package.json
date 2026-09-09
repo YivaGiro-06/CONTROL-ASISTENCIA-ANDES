@@ -4,7 +4,7 @@
     "type": "module",
     "private": true,
     "scripts": {
-        "generar": "node scratch/generar_datos.js",
+        "generar": "node --max-old-space-size=4096 scratch/generar_datos.js",
         "auditar": "node scratch/auditar.js"
     },
     "dependencies": {
