@@ -1,0 +1,8 @@
+node_modules/
+apartado_ga/
+apartado_ausencias/
+apartado_punch/
+apartado_inconsistencias/
+*.xlsx
+*.xls
+.DS_Store

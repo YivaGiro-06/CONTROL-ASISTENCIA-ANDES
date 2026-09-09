@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Asistencia · Regional Andes</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="head__top">
+      <div class="head__icon">📋</div>
+      <div class="head__txt">
+        <h1>Control de Asistencia · Regional Andes</h1>
+        <div class="head__sub"><b id="hdPeople">— colaboradores</b><span class="badge" id="hdUpd"></span><span>GeoVictoria · Regional Andes · ABI</span></div>
+      </div>
+      <div class="head__search">
+        <label>🔍 Buscar colaborador</label>
+        <input id="personSearch" placeholder="Cédula o nombre…" autocomplete="off">
+        <div class="search-dd" id="searchResults"></div>
+      </div>
+    </div>
+    <section class="filterbar" id="filterbar"></section>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-v="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span>Resumen</span></button>
+    <button class="tab" data-v="asistencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11l-3 3-2-2"/></svg><span>Asistencia</span></button>
+    <button class="tab" data-v="marcaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Marcaciones</span></button>
+    <button class="tab" data-v="jornada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg><span>Jornada laboral</span></button>
+    <button class="tab" data-v="descanso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg><span>Descanso efectivo</span></button>
+  </nav>
+
+  <section class="howto">
+    <span class="pulse"><span class="dot"></span>Todo es clickeable</span>
+    <p>Click en cualquier <b>KPI, barra o porción</b> → se abre el desglose <b>por cargo</b> (cuadritos). Click en un cargo → la <b>lista de personas</b>. Click en una persona → su <b>ficha completa</b> (asistencia, jornada, recargos, marcaciones y descanso del periodo).</p>
+  </section>
+
+  <!-- RESUMEN -->
+  <div class="view active" id="v-resumen">
+    <div class="hero"><div class="hero__l"><h2>Vista General · Regional Andes</h2><p id="heroSub">Resumen consolidado de asistencia</p></div><div class="hero__r"><b id="heroPct">—</b><span>Asistencia del operativo</span></div></div>
+    <div class="kpis" id="k-resumen"></div>
+    <div class="grid g1" id="cd-comparison-grid">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>🏭 Centros de Distribución · Regional Andes</h2></div><span class="hint">click en un CD para filtrar ›</span></div><p class="panel__sub">Dotación, ausentismo %, marcaciones correctas % y jornada promedio</p><div id="cd-cards-container" class="cd-grid"></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-resumen-sub"></p>
+        <div id="trend-resumen-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_resumen"></canvas></div></div>
+    </div>"></canvas></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Distribución del periodo</h2></div><span class="hint">click porción ›</span></div><p class="panel__sub">Asistencias · inasistencias · permisos · descansos</p><div class="cv"><canvas id="c_dona"></canvas></div></div>
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Hallazgos automáticos</h2></div></div><p class="panel__sub">Generados a partir de los datos</p><div class="ins" id="i-resumen"></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Evolución por mes</h2></div><span class="hint">click barra ›</span></div><p class="panel__sub">Asistencias, inasistencias, permisos y descansos · Ene–Jul</p><div class="cv"><canvas id="c_meses"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ASISTENCIA -->
+  <div class="view" id="v-asistencia">
+    <div class="kpis" id="k-asis"></div>
+    <div class="exnote" id="ex-asis"></div>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-asis-sub"></p>
+        <div id="trend-asis-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_asis"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel panel--trend" style="border-top-color:var(--red)"><div class="panel__h"><div class="l"><h2>🧮 Ausentismo · justificado vs injustificado</h2></div><span class="hint">responde al filtro de arriba: mes · día · rango</span></div>
+        <p class="panel__sub" id="ausji-sub"></p>
+        <div class="kpis" id="ausji-cards"></div>
+        <div id="ausji-motivos" style="margin-top:6px"></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2 id="inasdia-title">Inasistencias por mes</h2></div><span class="hint">click barra → personas ›</span></div><p class="panel__sub" id="inasdia-sub">Vista mensual · elige un mes arriba para ver el detalle por día · click en una barra → personas</p><div class="tbl-search" id="msel-asis"></div><div class="cv cv--wide"><canvas id="c_inasdia"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Top 10 · inasistencias</h2></div><span class="hint">respeta el filtro de arriba</span></div><p class="panel__sub">Elige el alcance y el periodo · click en una persona → ficha</p><div id="rk-inas"></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Inasistencias por cargo</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Click → personas de ese cargo → ficha</p><div class="cv"><canvas id="c_inascargo"></canvas></div></div>
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Inasistencias por día de la semana</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Click → personas de ese día → ficha</p><div class="cv"><canvas id="c_inasdow"></canvas></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Cuántos días falta cada persona</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Distribución · click en una barra → esas personas</p><div class="cv"><canvas id="c_dist"></canvas></div></div>
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Asistencia vs inasistencia por cargo</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Click en un segmento → personas de ese cargo</p><div class="cv"><canvas id="c_apc"></canvas></div></div>
+    </div>
+    <div class="panel"><div class="panel__h"><div class="l"><h2>Top personas con más inasistencias</h2></div></div><p class="panel__sub">Click en una persona → su ficha completa</p>
+      <div class="tbl-search"><input id="s-inas" placeholder="🔍 Buscar persona o cargo…"><span class="count" id="ct-inas"></span></div>
+      <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Persona</th><th>Cargo</th><th class="num">Inasist.</th><th class="num">Asist.</th><th class="num">Permisos</th></tr></thead><tbody id="tb-inas"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- MARCACIONES -->
+  <div class="view" id="v-marcaciones">
+    <div class="kpis" id="k-marc"></div>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-marc-sub"></p>
+        <div id="trend-marc-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_marc"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Marcaciones incorrectas por día</h2></div><span class="hint">click barra → personas de ese día ›</span></div><p class="panel__sub">Selecciona un mes · click en una barra para ver quiénes marcaron salida pero no entrada · <b>marcaciones incorrectas (salida sin entrada)</b></p><div class="tbl-search" id="msel-marc"></div><div class="cv cv--wide"><canvas id="c_incondia"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Top 10 · marcaciones incorrectas</h2></div><span class="hint">respeta el filtro de arriba</span></div><p class="panel__sub">Elige el alcance y el periodo · click en una persona → ficha</p><div id="rk-marc"></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Marcaciones incorrectas por cargo</h2></div><span class="hint">click barra ›</span></div><p class="panel__sub">Inconsistencias por cargo · click en una barra → personas de ese cargo → ficha</p><div class="cv cv--wide"><canvas id="c_inconcargo"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Método de marcaje</h2></div><span class="hint">click porción ›</span></div><p class="panel__sub">Reloj de control · app móvil</p><div class="cv"><canvas id="c_metodo"></canvas></div></div>
+    </div>
+    <div class="panel"><div class="panel__h"><div class="l"><h2>Personas con más marcaciones incorrectas</h2></div></div><p class="panel__sub">Click en una persona → su ficha completa</p>
+      <div class="tbl-search"><input id="s-marc" placeholder="🔍 Buscar persona o cargo…"><span class="count" id="ct-marc"></span></div>
+      <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Persona</th><th>Cargo</th><th class="num">Incorrectas</th><th class="num">Marcas</th></tr></thead><tbody id="tb-marc"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- JORNADA -->
+  <div class="view" id="v-jornada">
+    <div class="kpis" id="k-jornada"></div>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-jl-sub"></p>
+        <div id="trend-jl-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_jl"></canvas></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Clasificación JL · acumulado</h2></div><span class="hint">click banda ›</span></div><p class="panel__sub">Días trabajados por banda de jornada · click → personas de esa banda</p><div class="cv"><canvas id="c_jlband"></canvas></div></div>
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Excesos de JL por mes</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Jornadas &gt; 12 h · &gt;14 (rojo) · 13–14 (negro) · 12–13 (ámbar)</p><div class="cv"><canvas id="c_jlmes"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Excesos de jornada por día</h2></div><span class="hint">click barra → personas ›</span></div><p class="panel__sub">Selecciona un mes · barras apiladas por banda de exceso (&gt;12 h) · click → personas de ese día</p><div class="tbl-search" id="msel-jl"></div><div class="cv cv--wide"><canvas id="c_jldia"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Reincidencias de excesos de JL</h2></div><span class="hint">respeta el filtro de arriba</span></div>
+        <p class="panel__sub">Lista completa ordenada por más excesos (&gt;12 h). Cada persona muestra su detalle &gt;14 / 13–14 / 12–13. Click → ficha.</p>
+        <div id="jl-ctl"></div>
+        <div class="tbl-search"><input id="jl-search" placeholder="🔍 Buscar persona o cargo…"><span class="count" id="jl-count"></span></div>
+        <div class="scroll" style="max-height:560px"><div id="jl-list" class="plist" style="padding:4px"></div></div>
+      </div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Los que menos han trabajado</h2></div><span class="hint">día / semana / mes / total</span></div>
+        <p class="panel__sub">Lista completa ordenada de menor a mayor jornada. Umbral para ver jornadas por debajo de N horas. Click → ficha.</p>
+        <div id="jc-ctl"></div>
+        <div class="tbl-search"><input id="jc-search" placeholder="🔍 Buscar persona o cargo…"><span class="count" id="jc-count"></span></div>
+        <div class="scroll" style="max-height:420px"><div id="jc-list" class="plist" style="padding:4px"></div></div>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Composición de recargos</h2></div><span class="hint">click porción ›</span></div><p class="panel__sub">Distribución del recargo liquidado · click → personas</p><div class="cv"><canvas id="c_rec"></canvas></div></div>
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Horas trabajadas por mes</h2></div></div><p class="panel__sub">Carga operativa mensual</p><div class="cv"><canvas id="c_htmes"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- DESCANSO -->
+  <div class="view" id="v-descanso">
+    <div class="kpis" id="k-desc"></div>
+    <p class="panel__sub" style="margin:-4px 4px 12px">Descanso efectivo = horas entre la salida de un turno y la entrada del siguiente. <b>No efectivo = menos de 10 h</b> (bandas &lt;8 h y 8–10 h).</p>
+    <div class="grid g1">
+      <div class="panel panel--trend"><div class="panel__h"><div class="l"><h2>📈 Tendencia por mes</h2></div><span class="hint">no depende del mes seleccionado</span></div>
+        <p class="panel__sub" id="trend-desc-sub"></p>
+        <div id="trend-desc-ctl" class="trctl"></div>
+        <div class="cv cv--wide"><canvas id="c_trend_desc"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Descanso efectivo · acumulado</h2></div><span class="hint">click banda ›</span></div><p class="panel__sub">Descansos entre turnos por banda · <b>&gt; 10 h = efectivo</b> · click en una banda → personas</p><div class="cv cv--wide"><canvas id="c_descband"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Descansos no efectivos por mes</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Descansos de menos de 10 h entre turnos · click → personas de ese mes</p><div class="cv"><canvas id="c_descmes"></canvas></div></div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Reincidencias en descanso no efectivo</h2></div><span class="hint">respeta el filtro de arriba</span></div>
+        <p class="panel__sub">Lista completa ordenada por más descansos &lt; 10 h. Cada persona muestra su detalle &lt;8 h / 8–10 h. Click → ficha.</p>
+        <div id="de-ctl"></div>
+        <div class="tbl-search"><input id="de-search" placeholder="🔍 Buscar persona o cargo…"><span class="count" id="de-count"></span></div>
+        <div class="scroll" style="max-height:560px"><div id="de-list" class="plist" style="padding:4px"></div></div>
+      </div>
+    </div>
+    <div class="grid g1">
+      <div class="panel"><div class="panel__h"><div class="l"><h2>Días de descanso por cargo</h2></div><span class="hint">click ›</span></div><p class="panel__sub">Descanso semanal otorgado · click → personas de ese cargo → ficha</p><div class="cv"><canvas id="c_desccargo"></canvas></div></div>
+    </div>
+  </div>
+
+  <p class="foot">CD Itagüí T2 · Operación ABI · Ene–Jul 2026 · Construido desde GeoVictoria (marcaciones, inconsistencias), Gestión de Asistencia y Permisos · <b id="ftPeople">—</b> colaboradores · todo el detalle es clickeable hasta la ficha de cada persona</p>
+</div>
+
+<div class="drill-ov" id="drillOv"></div>
+<aside class="drill" id="drill">
+  <div class="drill-h"><button class="drill-x" id="drillX">✕</button><div class="crumb" id="drillCrumb"></div><h3 id="drillTitle"></h3><p id="drillSub"></p></div>
+  <div class="drill-b" id="drillBody"></div>
+</aside>
+
+<script src="js/app.js"></script>
+</body>
+</html>

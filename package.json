@@ -1,0 +1,17 @@
+{
+    "name": "control-asistencia-andes",
+    "version": "1.0.0",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "generar": "node scratch/generar_datos.js",
+        "auditar": "node scratch/auditar.js"
+    },
+    "dependencies": {
+        "jsdom": "^30.0.1",
+        "xlsx": "0.18.5"
+    },
+    "devDependencies": {
+        "jsdom": "^24.0.0"
+    }
+}
