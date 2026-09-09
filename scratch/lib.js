@@ -162,10 +162,20 @@ export function validarNombre(file, periodosEnContenido) {
 
 export function archivosDe(carpeta) {
   if (!fs.existsSync(carpeta)) return [];
-  return fs.readdirSync(carpeta)
-    .filter(f => /\.xlsx?$/i.test(f) && !f.startsWith('~$'))
-    .sort()
-    .map(f => path.join(carpeta, f));
+  const obtenerArchivos = (dir) => {
+    let res = [];
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        res = res.concat(obtenerArchivos(fullPath));
+      } else if (/\.xlsx?$/i.test(entry.name) && !entry.name.startsWith('~$')) {
+        res.push(fullPath);
+      }
+    }
+    return res;
+  };
+  return obtenerArchivos(carpeta).sort();
 }
 
 // ---------- escritura ----------
