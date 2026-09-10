@@ -1,4 +1,4 @@
-/* app.js — Control de Asistencia · CD Itagüí T2
+/* app.js — Control de Asistencia · Regional Andes
  *
  * Dos partes:
  *   1. CARGADOR: arma el objeto DATA desde los JSON particionados de data/.
@@ -206,7 +206,7 @@ function renderFicha(root,nombre){
   const p=PARR.find(x=>x.nombre===nombre)||PEOPLE[nombre];
   if(!p){root.innerHTML="<div class='fsec'><h4>Sin datos</h4><p class='muted'>Esta persona no tiene registros en el rango seleccionado.</p></div>";return;}
   const totLab=p.asist+p.inas+p.permisos;
-  let h=`<div class="fichahero"><div class="av">${initials(nombre)}</div><div><h3>${esc(nombre)}</h3><div class="fc">${esc(p.cargo)} <span class="cd-badge">${esc(p.cdId || 'ITAGUI')}</span></div></div></div>`;
+  let h=`<div class="fichahero"><div class="av">${initials(nombre)}</div><div><h3>${esc(nombre)}</h3><div class="fc">${esc(p.cargo)} <span class="cd-badge">${esc(p.cdId || '—')}</span></div></div></div>`;
   h+=`<div class="fstats">
     <div class="fstat"><b style="color:#D32F2F">${p.inas}</b><span>Inasistencias</span></div>
     <div class="fstat"><b style="color:#F57C00">${fmt1(p.jornada)}</b><span>Jornada h/día</span></div>
@@ -428,7 +428,7 @@ function buildBandWidget(o){ // {pfx,stream,labels,colors,focus} — periodo del
 /* ---------- small builders ---------- */
 function kpi(o){return `<div class="kpi kpi--${o.tone} ${o.click?"click":""}" ${o.id?`id="${o.id}"`:""}><div class="kpi__num">${o.n}${o.u?`<span class="kpi__u">${o.u}</span>`:""}</div><div class="kpi__lbl">${o.lbl}</div>${o.sub?`<div class="kpi__sub">${o.sub}</div>`:""}</div>`;}
 function insi(o){return `<div class="insight insight--${o.tone}"><i>${o.ic}</i><div><b>${o.t}</b><span>${o.d}</span></div></div>`;}
-function metricDrill(title,label,metric,unit,fmtv,note){return ()=>openDrill(peopleDrill({title,label,sub:"Ene–Jul 2026",people:PARR,metric,unit,fmtv,note}));}
+function metricDrill(title,label,metric,unit,fmtv,note){return ()=>openDrill(peopleDrill({title,label,sub:DATA.meta.periodo,people:PARR,metric,unit,fmtv,note}));}
 
 /* ===================== TAB: RESUMEN ===================== */
 function resumen(){
@@ -442,7 +442,7 @@ function resumen(){
     kpi({n:fmt(K.ht),u:"h",lbl:"Horas trabajadas",sub:`${fmt1(K.jornada_prom)} h/día promedio`,tone:"orange",click:1,id:"r-ht"})+
     kpi({n:fmt1(K.marc_inc_pct),u:"%",lbl:"Marca incorrecta",sub:`${fmt(K.incon)} inconsistencias`,tone:"amber",click:1,id:"r-mi"});
   $("#r-as").onclick=metricDrill("Asistencias","Asistencias",p=>p.asist);
-  $("#r-in").onclick=()=>openDrill(eventDrill("Inasistencias","Ene–Jul 2026",EV,"Inasistencias"));
+  $("#r-in").onclick=()=>openDrill(eventDrill("Inasistencias",DATA.meta.periodo,EV,"Inasistencias"));
   $("#r-pe").onclick=metricDrill("Permisos justificados","Permisos",p=>p.permisos);
   $("#r-ht").onclick=metricDrill("Horas trabajadas","Horas",p=>p.ht," h");
   $("#r-mi").onclick=metricDrill("Marcaciones incorrectas","Incorrectas",p=>p.incon);
@@ -463,7 +463,7 @@ function resumen(){
     const cdMap = {};
     cdsList.forEach(c => cdMap[c.id] = { id: c.id, label: c.label, color: c.color, count: 0, asist: 0, inas: 0, perm: 0, ht: 0, dias: 0, incon: 0, marcTot: 0 });
     A_PARR.forEach(p => {
-      const cid = p.cdId || 'ITAGUI';
+      const cid = p.cdId || '—';
       if (!cdMap[cid]) cdMap[cid] = { id: cid, label: cid, color: '#0288D1', count: 0, asist: 0, inas: 0, perm: 0, ht: 0, dias: 0, incon: 0, marcTot: 0 };
       const m = cdMap[cid];
       m.count++; m.asist += p.asist; m.inas += p.inas; m.perm += p.permisos;
@@ -501,7 +501,7 @@ function resumen(){
 
   mkc("c_dona",{type:"doughnut",data:{labels:["Asistencias","Inasistencias","Permisos","Descansos"],datasets:[{data:[K.asistencias,K.inasistencias,K.permisos,K.descansos],backgroundColor:[T.green,T.red,T.blue,T.amber],borderColor:"#fff",borderWidth:3}]},
     options:{cutout:"58%",plugins:{legend:{position:"right"},tooltip:{callbacks:{label:c=>{const t=K.asistencias+K.inasistencias+K.permisos+K.descansos;return `${c.label}: ${fmt(c.parsed)} (${fmt1(pct(c.parsed,t))}%)`;}}}},
-      onClick:(e,el)=>{if(!el.length)return;const i=el[0].index;[()=>openDrill(peopleDrill({title:"Asistencias",label:"Asistencias",people:PARR,metric:p=>p.asist})),()=>openDrill(eventDrill("Inasistencias","Ene–Jul",EV,"Inasistencias")),()=>openDrill(peopleDrill({title:"Permisos",label:"Permisos",people:PARR,metric:p=>p.permisos})),()=>openDrill(peopleDrill({title:"Descansos",label:"Descansos",people:PARR,metric:p=>p.descansos}))][i]();}}});
+      onClick:(e,el)=>{if(!el.length)return;const i=el[0].index;[()=>openDrill(peopleDrill({title:"Asistencias",label:"Asistencias",people:PARR,metric:p=>p.asist})),()=>openDrill(eventDrill("Inasistencias",DATA.meta.periodo,EV,"Inasistencias")),()=>openDrill(peopleDrill({title:"Permisos",label:"Permisos",people:PARR,metric:p=>p.permisos})),()=>openDrill(peopleDrill({title:"Descansos",label:"Descansos",people:PARR,metric:p=>p.descansos}))][i]();}}});
 
   const pm=DATA.por_mes;
   mkc("c_meses",{type:"bar",data:{labels:pm.map(m=>m.mes),datasets:[
@@ -526,13 +526,13 @@ function resumen(){
 /* ===================== TAB: ASISTENCIA ===================== */
 function asistencia(){
   $("#k-asis").innerHTML=
-    kpi({n:fmt(K.inasistencias),lbl:"Inasistencias",sub:"Personal activo · Ene–Jul",tone:"red",click:1,id:"a-in"})+
+    kpi({n:fmt(K.inasistencias),lbl:"Inasistencias",sub:"Personal activo · "+DATA.meta.periodo,tone:"red",click:1,id:"a-in"})+
     kpi({n:fmt(PARR.filter(p=>p.inas>0).length),lbl:"Personas que faltaron",sub:"Al menos 1 día",tone:"orange",click:1,id:"a-pp"})+
     kpi({n:fmt(K.asistencias),lbl:"Asistencias",sub:`${fmt1(K.pct_asist)}%`,tone:"green",click:1,id:"a-as"})+
     kpi({n:fmt(K.permisos),lbl:"Permisos",sub:`${DATA.permisos_breakdown.length} categorías`,tone:"blue",click:1,id:"a-pe"})+
     kpi({n:fmt(K.descansos),lbl:"Descansos",sub:"Día libre programado",tone:"amber",click:1,id:"a-de"});
-  $("#a-in").onclick=()=>openDrill(eventDrill("Inasistencias","Ene–Jul",EV,"Inasistencias"));
-  $("#a-pp").onclick=()=>openDrill(eventDrill("Inasistencias","Ene–Jul",EV,"Inasistencias"));
+  $("#a-in").onclick=()=>openDrill(eventDrill("Inasistencias",DATA.meta.periodo,EV,"Inasistencias"));
+  $("#a-pp").onclick=()=>openDrill(eventDrill("Inasistencias",DATA.meta.periodo,EV,"Inasistencias"));
   $("#a-as").onclick=metricDrill("Asistencias","Asistencias",p=>p.asist);
   $("#a-pe").onclick=metricDrill("Permisos","Permisos",p=>p.permisos);
   $("#a-de").onclick=metricDrill("Descansos","Descansos",p=>p.descansos);
