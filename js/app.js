@@ -1009,8 +1009,6 @@ function buildFilterBar(){
   }
   draw();
 }
-  draw();
-}
 buildFilterBar();
 resumen();done.resumen=true;
 }
