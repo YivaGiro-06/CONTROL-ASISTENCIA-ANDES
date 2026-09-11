@@ -5,9 +5,12 @@
 export const CDS = {
   'ITAGUI':       { id: 'ITAGUI',       label: 'CD Itagüí',       aliases: ['itagui', 'itagüi', 'itagui t2', 'ud itagui'], color: '#F57C00' },
   'ARMENIA':      { id: 'ARMENIA',      label: 'CD Armenia',      aliases: ['armenia', 'cd armenia', 'ud armenia'], color: '#2E7D32' },
-  'FORJANDES':    { id: 'FORJANDES',    label: 'CD Forjandes',    aliases: ['forjandes', 'cd forjandes', 'ud forjandes'], color: '#0288D1' },
-  'GIRARDOTA':    { id: 'GIRARDOTA',    label: 'CD Girardota',    aliases: ['girardota', 'cd girardota', 'ud girardota'], color: '#7B1FA2' },
-  'PEREIRA':      { id: 'PEREIRA',      label: 'CD Pereira',      aliases: ['pereira', 'cd pereira', 'ud pereira'], color: '#E64A19' },
+  'FORJANDES':    { id: 'FORJANDES',    label: 'CD Forjandes',    aliases: ['forjandes', 'cd forjandes', 'ud forjandes'], color: '#3949AB' },
+  'MANIZALES':    { id: 'MANIZALES',    label: 'CD Manizales',    aliases: ['manizales', 'cd manizales'], color: '#0288D1' },
+  'OL_PEREIRA':   { id: 'OL_PEREIRA',   label: 'OL Pereira',      aliases: ['ol pereira'], color: '#E64A19' },
+  'UC_PEREIRA':   { id: 'UC_PEREIRA',   label: 'UC Pereira',      aliases: ['pereira', 'uc pereira', 'udc pereira'], color: '#FB8C00' },
+  'OL_GIRARDOTA': { id: 'OL_GIRARDOTA', label: 'OL Girardota',    aliases: ['ol girardota'], color: '#7B1FA2' },
+  'UC_GIRARDOTA': { id: 'UC_GIRARDOTA', label: 'UC Girardota',    aliases: ['girardota', 'uc girardota', 'udc girardota'], color: '#5E35B1' },
   'MED_ARANJUEZ': { id: 'MED_ARANJUEZ', label: 'CD Med Aranjuez', aliases: ['med aranjuez', 'aranjuez', 'cd med aranjuez', 'ud aranjuez'], color: '#C2185B' },
   'MED_ENVIGADO': { id: 'MED_ENVIGADO', label: 'CD Med Envigado', aliases: ['med envigado', 'envigado', 'cd med envigado', 'udc envigado', 'ud envigado'], color: '#00796B' },
 };
@@ -78,6 +81,13 @@ const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0
 
 export function resolveGrupo(raw) {
   const n = norm(raw);
+  // Split OL/UC + Manizales (Regional Andes). Debe ir ANTES del match genérico por alias
+  // de CD: como "girardota" es substring de "ol girardota", el genérico los mezclaría.
+  const g = (cdId) => ({ clave: raw, id: cdId, label: raw, incluir: true, cdId });
+  const esOL = /(^|\s)ol(\s|$)/.test(n);            // grupo marcado "OL" = Operador Logístico
+  if (n.includes('manizales')) return g('MANIZALES');                     // Manizales: CD único, sin OL/UC
+  if (n.includes('pereira'))   return g(esOL ? 'OL_PEREIRA'   : 'UC_PEREIRA');
+  if (n.includes('girardota')) return g(esOL ? 'OL_GIRARDOTA' : 'UC_GIRARDOTA');
   for (const [clave, cfg] of Object.entries(GRUPOS)) {
     if (norm(clave) === n || (cfg.aliases || []).some(a => norm(a) === n)) return { clave, ...cfg };
   }
@@ -115,4 +125,4 @@ export function catalogosExportables(cargosDescubiertos = [], permisosDescubiert
     cargos: cargosDescubiertos.map((c, i) => ({ cargo: c, color: colorCargo(c, i) })),
     tiposPermiso: permisosDescubiertos.map(t => ({ tipo: t, ...(TIPOS_PERMISO[t] || { color: '#94908a' }) })),
   };
-}
+}
