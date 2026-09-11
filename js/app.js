@@ -344,6 +344,26 @@ function rangeDayIdx(){const o=[];for(let i=0;i<DAYS.length;i++) if(inRG(i)) o.p
 let CG=""; // cargo seleccionado ("" = todos)
 function inCG(pi){return !CG||PRS[pi].c===CG;}
 let CD_FILTER=""; // CD seleccionado ("" = Regional Andes / todos)
+// Catálogo de CD data-driven: se arma desde los cdId presentes en los datos.
+// Agregar/quitar un CD en el pipeline no requiere tocar esta lista.
+const CD_META={
+  ITAGUI:{label:'CD Itagüí',color:'#F57C00'},
+  ARMENIA:{label:'CD Armenia',color:'#2E7D32'},
+  MANIZALES:{label:'CD Manizales',color:'#0288D1'},
+  FORJANDES:{label:'CD Forjandes',color:'#3949AB'},
+  OL_PEREIRA:{label:'OL Pereira',color:'#E64A19'},
+  UC_PEREIRA:{label:'UC Pereira',color:'#FB8C00'},
+  OL_GIRARDOTA:{label:'OL Girardota',color:'#7B1FA2'},
+  UC_GIRARDOTA:{label:'UC Girardota',color:'#5E35B1'},
+  MED_ARANJUEZ:{label:'CD Med Aranjuez',color:'#C2185B'},
+  MED_ENVIGADO:{label:'CD Med Envigado',color:'#00796B'},
+};
+const CD_LIST=(()=>{
+  const present=[...new Set(A_PARR.map(p=>p.cdId).filter(Boolean))];
+  const ordered=Object.keys(CD_META).filter(id=>present.includes(id));
+  const extra=present.filter(id=>!CD_META[id]);
+  return [...ordered,...extra].map(id=>({id,label:CD_META[id]?.label||id,color:CD_META[id]?.color||'#0288D1'}));
+})();
 function inCD(pi){return !CD_FILTER||(PRS[pi]&&(PRS[pi].cd===CD_FILTER||PRS[pi].cdId===CD_FILTER));}
 function applyRange(a,b){RG=(a==null)?null:{a:Math.min(a,b),b:Math.max(a,b)};applyScope();}
 function applyCargo(c){CG=c||"";applyScope();}
@@ -451,15 +471,7 @@ function resumen(){
   (function renderCdCards(){
     const container = $("#cd-cards-container");
     if (!container) return;
-    const cdsList = DATA.cds || [
-      { id: 'ITAGUI', label: 'CD Itagüí', color: '#F57C00' },
-      { id: 'ARMENIA', label: 'CD Armenia', color: '#2E7D32' },
-      { id: 'FORJANDES', label: 'CD Forjandes', color: '#0288D1' },
-      { id: 'GIRARDOTA', label: 'CD Girardota', color: '#7B1FA2' },
-      { id: 'PEREIRA', label: 'CD Pereira', color: '#E64A19' },
-      { id: 'MED_ARANJUEZ', label: 'CD Med Aranjuez', color: '#C2185B' },
-      { id: 'MED_ENVIGADO', label: 'CD Med Envigado', color: '#00796B' },
-    ];
+    const cdsList = DATA.cds || CD_LIST;
     const cdMap = {};
     cdsList.forEach(c => cdMap[c.id] = { id: c.id, label: c.label, color: c.color, count: 0, asist: 0, inas: 0, perm: 0, ht: 0, dias: 0, incon: 0, marcTot: 0 });
     A_PARR.forEach(p => {
@@ -499,9 +511,7 @@ function resumen(){
 
   buildTrendBoard("resumen","ausJI");
 
-  mkc("c_dona",{type:"doughnut",data:{labels:["Asistencias","Inasistencias","Permisos","Descansos"],datasets:[{data:[K.asistencias,K.inasistencias,K.permisos,K.descansos],backgroundColor:[T.green,T.red,T.blue,T.amber],borderColor:"#fff",borderWidth:3}]},
-    options:{cutout:"58%",plugins:{legend:{position:"right"},tooltip:{callbacks:{label:c=>{const t=K.asistencias+K.inasistencias+K.permisos+K.descansos;return `${c.label}: ${fmt(c.parsed)} (${fmt1(pct(c.parsed,t))}%)`;}}}},
-      onClick:(e,el)=>{if(!el.length)return;const i=el[0].index;[()=>openDrill(peopleDrill({title:"Asistencias",label:"Asistencias",people:PARR,metric:p=>p.asist})),()=>openDrill(eventDrill("Inasistencias",DATA.meta.periodo,EV,"Inasistencias")),()=>openDrill(peopleDrill({title:"Permisos",label:"Permisos",people:PARR,metric:p=>p.permisos})),()=>openDrill(peopleDrill({title:"Descansos",label:"Descansos",people:PARR,metric:p=>p.descansos}))][i]();}}});
+  // Dona "Distribución del periodo" eliminada del Resumen a pedido.
 
   const pm=DATA.por_mes;
   mkc("c_meses",{type:"bar",data:{labels:pm.map(m=>m.mes),datasets:[
@@ -958,15 +968,7 @@ function weeksOfMonth(mes){const[a,b]=monthRangeIdx(mes);const g={},order=[];for
 function buildFilterBar(){
   const fb=$("#filterbar"),months=monthsPresent();
   const CARGOS=[...new Set(PRS.map(p=>p.c))].sort((a,b)=>a.localeCompare(b,"es"));
-  const CDS_LIST = DATA.cds || [
-    { id: 'ITAGUI', label: 'CD Itagüí' },
-    { id: 'ARMENIA', label: 'CD Armenia' },
-    { id: 'FORJANDES', label: 'CD Forjandes' },
-    { id: 'GIRARDOTA', label: 'CD Girardota' },
-    { id: 'PEREIRA', label: 'CD Pereira' },
-    { id: 'MED_ARANJUEZ', label: 'CD Med Aranjuez' },
-    { id: 'MED_ENVIGADO', label: 'CD Med Envigado' },
-  ];
+  const CDS_LIST = DATA.cds || CD_LIST;
   let selMonth="",selWeek="",selDay="",selCargo="";
   function curRange(){
     if(selDay!=="")return[+selDay,+selDay];
