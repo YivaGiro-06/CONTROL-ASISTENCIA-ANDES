@@ -3,16 +3,16 @@
 
 // Centros de Distribución (CDs) de la Regional Andes
 export const CDS = {
-  'ITAGUI':       { id: 'ITAGUI',       label: 'CD Itagüí',       aliases: ['itagui', 'itagüi', 'itagui t2', 'ud itagui'], color: '#F57C00' },
-  'ARMENIA':      { id: 'ARMENIA',      label: 'CD Armenia',      aliases: ['armenia', 'cd armenia', 'ud armenia', 'ka armenia'], color: '#2E7D32' },
-  'FORJANDES':    { id: 'FORJANDES',    label: 'CD Forjandes',    aliases: ['forjandes', 'cd forjandes', 'ud forjandes'], color: '#0288D1' },
-  'UC_GIRARDOTA': { id: 'UC_GIRARDOTA', label: 'CD UC Girardota', aliases: ['uc girardota', 'cd girardota', 'girardota'], color: '#7B1FA2' },
-  'OL_GIRARDOTA': { id: 'OL_GIRARDOTA', label: 'CD OL Girardota', aliases: ['ol girardota', 'ol-girardota', 'cd ol girardota'], color: '#9C27B0' },
-  'UC_PEREIRA':   { id: 'UC_PEREIRA',   label: 'CD UC Pereira',   aliases: ['uc pereira', 'cd pereira', 'pereira', 'ka pereira'], color: '#E64A19' },
-  'OL_PEREIRA':   { id: 'OL_PEREIRA',   label: 'CD OL Pereira',   aliases: ['ol pereira', 'ol-pereira', 'cd ol pereira'], color: '#FF5722' },
-  'MANIZALES':    { id: 'MANIZALES',    label: 'CD Manizales',    aliases: ['manizales', 'cd manizales', 'ud manizales'], color: '#00897B' },
-  'MED_ARANJUEZ': { id: 'MED_ARANJUEZ', label: 'CD Med Aranjuez', aliases: ['med aranjuez', 'aranjuez', 'cd med aranjuez', 'udc aranjuez'], color: '#C2185B' },
-  'MED_ENVIGADO': { id: 'MED_ENVIGADO', label: 'CD Med Envigado', aliases: ['med envigado', 'envigado', 'cd med envigado', 'udc envigado', 'ud envigado'], color: '#00796B' },
+  'ITAGUI':       { id: 'ITAGUI',       label: 'Itagüí',       aliases: ['itagui', 'itagüi', 'itagui t2', 'ud itagui'], color: '#F57C00' },
+  'ARMENIA':      { id: 'ARMENIA',      label: 'Armenia',      aliases: ['armenia', 'cd armenia', 'ud armenia', 'ka armenia'], color: '#2E7D32' },
+  'FORJANDES':    { id: 'FORJANDES',    label: 'Forjandes',    aliases: ['forjandes', 'cd forjandes', 'ud forjandes'], color: '#0288D1' },
+  'UC_GIRARDOTA': { id: 'UC_GIRARDOTA', label: 'UC Girardota', aliases: ['uc girardota', 'cd girardota', 'girardota'], color: '#7B1FA2' },
+  'OL_GIRARDOTA': { id: 'OL_GIRARDOTA', label: 'OL Girardota', aliases: ['ol girardota', 'ol-girardota', 'cd ol girardota'], color: '#9C27B0' },
+  'UC_PEREIRA':   { id: 'UC_PEREIRA',   label: 'UC Pereira',   aliases: ['uc pereira', 'cd pereira', 'pereira', 'ka pereira'], color: '#E64A19' },
+  'OL_PEREIRA':   { id: 'OL_PEREIRA',   label: 'OL Pereira',   aliases: ['ol pereira', 'ol-pereira', 'cd ol pereira'], color: '#FF5722' },
+  'MANIZALES':    { id: 'MANIZALES',    label: 'Manizales',    aliases: ['manizales', 'cd manizales', 'ud manizales'], color: '#00897B' },
+  'MED_ARANJUEZ': { id: 'MED_ARANJUEZ', label: 'Med Aranjuez', aliases: ['med aranjuez', 'aranjuez', 'cd med aranjuez', 'udc aranjuez'], color: '#C2185B' },
+  'MED_ENVIGADO': { id: 'MED_ENVIGADO', label: 'Med Envigado', aliases: ['med envigado', 'envigado', 'cd med envigado', 'udc envigado', 'ud envigado'], color: '#00796B' },
 };
 
 // Grupos GeoVictoria que entran al tablero. Mapeados a su correspondiente CD.
@@ -142,4 +142,4 @@ export function catalogosExportables(cargosDescubiertos = [], permisosDescubiert
     cargos: cargosDescubiertos.map((c, i) => ({ cargo: c, color: colorCargo(c, i) })),
     tiposPermiso: permisosDescubiertos.map(t => ({ tipo: t, ...(TIPOS_PERMISO[t] || { color: '#94908a' }) })),
   };
-}
+}
