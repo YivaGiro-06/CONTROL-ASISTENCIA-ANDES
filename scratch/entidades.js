@@ -4,38 +4,56 @@
 // Centros de Distribución (CDs) de la Regional Andes
 export const CDS = {
   'ITAGUI':       { id: 'ITAGUI',       label: 'CD Itagüí',       aliases: ['itagui', 'itagüi', 'itagui t2', 'ud itagui'], color: '#F57C00' },
-  'ARMENIA':      { id: 'ARMENIA',      label: 'CD Armenia',      aliases: ['armenia', 'cd armenia', 'ud armenia'], color: '#2E7D32' },
+  'ARMENIA':      { id: 'ARMENIA',      label: 'CD Armenia',      aliases: ['armenia', 'cd armenia', 'ud armenia', 'ka armenia'], color: '#2E7D32' },
   'FORJANDES':    { id: 'FORJANDES',    label: 'CD Forjandes',    aliases: ['forjandes', 'cd forjandes', 'ud forjandes'], color: '#0288D1' },
-  'GIRARDOTA':    { id: 'GIRARDOTA',    label: 'CD Girardota',    aliases: ['girardota', 'cd girardota', 'ud girardota'], color: '#7B1FA2' },
-  'PEREIRA':      { id: 'PEREIRA',      label: 'CD Pereira',      aliases: ['pereira', 'cd pereira', 'ud pereira'], color: '#E64A19' },
-  'MED_ARANJUEZ': { id: 'MED_ARANJUEZ', label: 'CD Med Aranjuez', aliases: ['med aranjuez', 'aranjuez', 'cd med aranjuez', 'ud aranjuez'], color: '#C2185B' },
+  'UC_GIRARDOTA': { id: 'UC_GIRARDOTA', label: 'CD UC Girardota', aliases: ['uc girardota', 'cd girardota', 'girardota'], color: '#7B1FA2' },
+  'OL_GIRARDOTA': { id: 'OL_GIRARDOTA', label: 'CD OL Girardota', aliases: ['ol girardota', 'ol-girardota', 'cd ol girardota'], color: '#9C27B0' },
+  'UC_PEREIRA':   { id: 'UC_PEREIRA',   label: 'CD UC Pereira',   aliases: ['uc pereira', 'cd pereira', 'pereira', 'ka pereira'], color: '#E64A19' },
+  'OL_PEREIRA':   { id: 'OL_PEREIRA',   label: 'CD OL Pereira',   aliases: ['ol pereira', 'ol-pereira', 'cd ol pereira'], color: '#FF5722' },
+  'MANIZALES':    { id: 'MANIZALES',    label: 'CD Manizales',    aliases: ['manizales', 'cd manizales', 'ud manizales'], color: '#00897B' },
+  'MED_ARANJUEZ': { id: 'MED_ARANJUEZ', label: 'CD Med Aranjuez', aliases: ['med aranjuez', 'aranjuez', 'cd med aranjuez', 'udc aranjuez'], color: '#C2185B' },
   'MED_ENVIGADO': { id: 'MED_ENVIGADO', label: 'CD Med Envigado', aliases: ['med envigado', 'envigado', 'cd med envigado', 'udc envigado', 'ud envigado'], color: '#00796B' },
 };
 
 // Grupos GeoVictoria que entran al tablero. Mapeados a su correspondiente CD.
 export const GRUPOS = {
   // CD ITAGÜÍ
-  'ITAGUI T2': { id: 'T2', label: 'Itagüí T2', aliases: ['itagui t2', 'itagüi t2'], incluir: true, cdId: 'ITAGUI' },
-  'UD Itagui': { id: 'UD', label: 'UD Itagüí',  aliases: ['ud itagui', 'ud itagüi', 'ud itagui jn', 'ud itagüi jn'], incluir: true, cdId: 'ITAGUI' },
+  'ITAGUI T2':      { id: 'T2',    label: 'Itagüí T2',      aliases: ['itagui t2', 'itagüi t2'], incluir: true, cdId: 'ITAGUI' },
+  'UD Itagui':      { id: 'UD',    label: 'UD Itagüí',       aliases: ['ud itagui', 'ud itagüi', 'ud itagui jn', 'ud itagüi jn'], incluir: true, cdId: 'ITAGUI' },
+  'UD Itagui JN':   { id: 'UDJN',  label: 'UD Itagüí JN',    aliases: ['ud itagui jn', 'ud itagüi jn'], incluir: true, cdId: 'ITAGUI' },
   
   // CD ARMENIA
-  'CD ARMENIA': { id: 'ARM', label: 'CD Armenia', aliases: ['cd armenia', 'armenia', 'ud armenia'], incluir: true, cdId: 'ARMENIA' },
-  
+  'CD ARMENIA':     { id: 'ARM',   label: 'CD Armenia',     aliases: ['cd armenia', 'armenia', 'ud armenia'], incluir: true, cdId: 'ARMENIA' },
+  'KA Armenia':     { id: 'ARM2',  label: 'KA Armenia',     aliases: ['ka armenia'], incluir: true, cdId: 'ARMENIA' },
+
   // CD FORJANDES
-  'CD FORJANDES': { id: 'FORJ', label: 'CD Forjandes', aliases: ['cd forjandes', 'forjandes', 'ud forjandes'], incluir: true, cdId: 'FORJANDES' },
-  
-  // CD GIRARDOTA
-  'CD GIRARDOTA': { id: 'GIR', label: 'CD Girardota', aliases: ['cd girardota', 'girardota', 'ud girardota'], incluir: true, cdId: 'GIRARDOTA' },
-  
-  // CD PEREIRA
-  'CD PEREIRA': { id: 'PER', label: 'CD Pereira', aliases: ['cd pereira', 'pereira', 'ud pereira'], incluir: true, cdId: 'PEREIRA' },
-  
+  'CD FORJANDES':   { id: 'FORJ',  label: 'CD Forjandes',   aliases: ['cd forjandes', 'forjandes', 'ud forjandes'], incluir: true, cdId: 'FORJANDES' },
+
+  // CD UC GIRARDOTA
+  'CD GIRARDOTA':   { id: 'GIR',   label: 'UC Girardota',    aliases: ['cd girardota', 'girardota', 'ud girardota', 'uc girardota'], incluir: true, cdId: 'UC_GIRARDOTA' },
+  'GIRARDOTA':      { id: 'GIR2',  label: 'UC Girardota',    aliases: ['girardota'], incluir: true, cdId: 'UC_GIRARDOTA' },
+
+  // CD OL GIRARDOTA
+  'OL GIRARDOTA':   { id: 'OLGIR', label: 'OL Girardota',    aliases: ['ol girardota', 'ol-girardota', 'cd ol girardota'], incluir: true, cdId: 'OL_GIRARDOTA' },
+
+  // CD UC PEREIRA
+  'CD PEREIRA':     { id: 'PER',   label: 'UC Pereira',      aliases: ['cd pereira', 'pereira', 'ud pereira', 'uc pereira'], incluir: true, cdId: 'UC_PEREIRA' },
+  'PEREIRA':        { id: 'PER2',  label: 'UC Pereira',      aliases: ['pereira'], incluir: true, cdId: 'UC_PEREIRA' },
+  'KA Pereira':     { id: 'PER3',  label: 'KA Pereira',      aliases: ['ka pereira'], incluir: true, cdId: 'UC_PEREIRA' },
+
+  // CD OL PEREIRA
+  'OL PEREIRA':     { id: 'OLPER', label: 'OL Pereira',      aliases: ['ol pereira', 'ol-pereira', 'cd ol pereira'], incluir: true, cdId: 'OL_PEREIRA' },
+
+  // CD MANIZALES
+  'MANIZALES':      { id: 'MAN',   label: 'CD Manizales',   aliases: ['manizales', 'cd manizales', 'ud manizales'], incluir: true, cdId: 'MANIZALES' },
+
   // CD MED ARANJUEZ
-  'CD MED ARANJUEZ': { id: 'ARAN', label: 'CD Med Aranjuez', aliases: ['cd med aranjuez', 'med aranjuez', 'aranjuez', 'ud aranjuez'], incluir: true, cdId: 'MED_ARANJUEZ' },
-  
+  'CD MED ARANJUEZ':{ id: 'ARAN',  label: 'CD Med Aranjuez',aliases: ['cd med aranjuez', 'med aranjuez', 'aranjuez', 'udc aranjuez'], incluir: true, cdId: 'MED_ARANJUEZ' },
+  'UDC Aranjuez':   { id: 'ARAN2', label: 'UDC Aranjuez',   aliases: ['udc aranjuez'], incluir: true, cdId: 'MED_ARANJUEZ' },
+
   // CD MED ENVIGADO
-  'CD MED ENVIGADO': { id: 'ENV', label: 'CD Med Envigado', aliases: ['cd med envigado', 'med envigado', 'envigado', 'udc envigado', 'ud envigado'], incluir: true, cdId: 'MED_ENVIGADO' },
-  'UDC Envigado': { id: 'ENV2', label: 'UDC Envigado', aliases: ['udc envigado'], incluir: true, cdId: 'MED_ENVIGADO' },
+  'CD MED ENVIGADO':{ id: 'ENV',   label: 'CD Med Envigado',aliases: ['cd med envigado', 'med envigado', 'envigado'], incluir: true, cdId: 'MED_ENVIGADO' },
+  'UDC Envigado':   { id: 'ENV2',  label: 'UDC Envigado',   aliases: ['udc envigado'], incluir: true, cdId: 'MED_ENVIGADO' },
 };
 
 // Estados del día. El orden define el índice que se guarda en las particiones.
@@ -81,9 +99,18 @@ export function resolveGrupo(raw) {
   for (const [clave, cfg] of Object.entries(GRUPOS)) {
     if (norm(clave) === n || (cfg.aliases || []).some(a => norm(a) === n)) return { clave, ...cfg };
   }
-  // Coincidencia dinámica por alias de CD si el grupo trae el nombre del centro
+  // Coincidencia dinámica por alias de CD si el grupo trae el nombre del centro.
+  // Se ordenan los alias por longitud descendente para evitar falsas coincidencias parciales.
+  const allCdAliases = [];
   for (const [cdKey, cdCfg] of Object.entries(CDS)) {
-    if (cdCfg.aliases.some(a => n.includes(norm(a)))) {
+    for (const a of cdCfg.aliases) {
+      allCdAliases.push({ cdKey, aliasNorm: norm(a), len: norm(a).length });
+    }
+  }
+  allCdAliases.sort((a, b) => b.len - a.len);
+
+  for (const { cdKey, aliasNorm } of allCdAliases) {
+    if (n.includes(aliasNorm)) {
       return { clave: raw, id: cdKey, label: raw, incluir: true, cdId: cdKey };
     }
   }
