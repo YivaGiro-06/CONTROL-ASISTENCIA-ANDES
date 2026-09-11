@@ -206,7 +206,8 @@ function renderFicha(root,nombre){
   const p=PARR.find(x=>x.nombre===nombre)||PEOPLE[nombre];
   if(!p){root.innerHTML="<div class='fsec'><h4>Sin datos</h4><p class='muted'>Esta persona no tiene registros en el rango seleccionado.</p></div>";return;}
   const totLab=p.asist+p.inas+p.permisos;
-  let h=`<div class="fichahero"><div class="av">${initials(nombre)}</div><div><h3>${esc(nombre)}</h3><div class="fc">${esc(p.cargo)} <span class="cd-badge">${esc(p.cdId || '—')}</span></div></div></div>`;
+  const idb=PEOPLE[nombre]||p;
+  let h=`<div class="fichahero"><div class="av">${initials(nombre)}</div><div><h3>${esc(nombre)}</h3><div class="fc">${esc(p.cargo)} <span class="cd-badge">${esc(idb.cdId || '—')}</span></div></div></div>`;
   h+=`<div class="fstats">
     <div class="fstat"><b style="color:#D32F2F">${p.inas}</b><span>Inasistencias</span></div>
     <div class="fstat"><b style="color:#F57C00">${fmt1(p.jornada)}</b><span>Jornada h/día</span></div>
