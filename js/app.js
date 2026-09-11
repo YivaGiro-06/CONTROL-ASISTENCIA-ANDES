@@ -949,7 +949,7 @@ function show(v){CURV=v;document.querySelectorAll(".tab").forEach(b=>b.classList
   if(!done[v]){R[v]();done[v]=true;}setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}),60);
   window.scrollTo({top:0,behavior:"smooth"});}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>show(b.dataset.v));
-function refreshAll(){for(const id in charts){try{charts[id].destroy()}catch(e){}delete charts[id];}done={};R[CURV]();done[CURV]=true;}
+function refreshAll(){for(const id in charts){try{charts[id].destroy()}catch(e){}delete charts[id];}done={};R[CURV]();done[CURV]=true;setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}),60);}
 
 /* ---- barra de filtro (limpia, desplegables) ---- */
 function monthsPresent(){const s=[];DMETA.forEach(m=>{if(!s.includes(m.mes))s.push(m.mes);});return MES_ORDER.filter(m=>s.includes(m));}
