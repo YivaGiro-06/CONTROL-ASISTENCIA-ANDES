@@ -799,26 +799,77 @@ function buildCruceJL(){
     if(b>1) continue;
     const k=pi+"|"+di, jb=jl[k];
     if(jb===undefined) continue;            // ese día no trabajó >12 h -> no aplica
-    rows.push({pi,di,jb,db:b,h:ht[k]??0});
+    rows.push({pi,di,jb,db:b,h:ht[k]??0,dow:DMETA[di].dow});
   }
   rows.sort((x,y)=>y.h-x.h);                 // jornada más larga primero
-  let q="";
+  let q="",dw="";
   const inp=$("#cr-search"); if(inp) inp.oninput=e=>{q=e.target.value.toLowerCase();draw();};
+  const sd=$("#cr-dow");    if(sd)  sd.onchange=e=>{dw=e.target.value;draw();};
   function draw(){
     let rs=rows;
-    if(q) rs=rs.filter(r=>PRS[r.pi].n.toLowerCase().includes(q)||PRS[r.pi].c.toLowerCase().includes(q));
+    if(dw) rs=rs.filter(r=>r.dow===dw);
+    if(q)  rs=rs.filter(r=>PRS[r.pi].n.toLowerCase().includes(q)||PRS[r.pi].c.toLowerCase().includes(q));
     const nPer=new Set(rs.map(r=>r.pi)).size;
     const cnt=$("#cr-count"); if(cnt) cnt.textContent=fmt(rs.length)+" casos · "+fmt(nPer)+" personas";
-    const list=$("#cr-list"); if(!list) return;
-    if(!rs.length){ list.innerHTML=`<div class="rkempty">Sin casos en el periodo/CD seleccionado.</div>`; return; }
-    list.innerHTML=rs.map((r,i)=>{const p=PRS[r.pi],f=DAYS[r.di],cd=CD_META[p.cd]?.label||p.cd;
-      return `<div class="prow" data-n="${esc(p.n)}"><div class="av" style="background:linear-gradient(140deg,#e53935,#b71c1c)">${i+1}</div>
-        <div class="pn"><b>${esc(p.n)}</b><span>${esc(p.c)} · ${esc(cd)} · ${esc(fdateLarga(f))}</span></div>
-        <div class="pv" style="color:#D32F2F">${fmt1(r.h)} h<small>desc. ${DEB[r.db]} h · no efectivo</small></div></div>`;
+    const body=$("#cr-body"); if(!body) return;
+    if(!rs.length){ body.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:22px">Sin casos en el periodo/CD/día seleccionado.</td></tr>`; return; }
+    body.innerHTML=rs.map(r=>{const p=PRS[r.pi],f=DAYS[r.di],cc=CD_META[p.cd]?.color||"#6f6f6a",cl=CD_META[p.cd]?.label||p.cd,g=p.g||"—";
+      const cdPill=`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${cc}1f;color:${cc}">${esc(cl)}</span>`;
+      const gPill=g==="—"?`<span style="color:var(--muted2)">—</span>`:`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:#ece9e4;color:#57534d">${esc(g)}</span>`;
+      const dcol=r.db===0?"#D32F2F":"#F57C00";
+      const dPill=`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${dcol}1f;color:${dcol}">${DEB[r.db]} h</span>`;
+      return `<tr class="click" data-pi="${r.pi}" data-di="${r.di}">`+
+        `<td style="font-weight:600;white-space:nowrap">${esc(fdate(f))}</td>`+
+        `<td>${gPill}</td>`+
+        `<td><b>${esc(p.n)}</b></td>`+
+        `<td>${cdPill}</td>`+
+        `<td class="num" style="color:#D32F2F;font-weight:800">${fmt1(r.h)} h</td>`+
+        `<td>${dPill}</td></tr>`;
     }).join("");
-    list.querySelectorAll(".prow").forEach(el=>el.onclick=()=>openDrill(fichaFrame(el.dataset.n)));
+    body.querySelectorAll("tr.click").forEach(tr=>tr.onclick=()=>openDrill(cruceDetalleFrame(+tr.dataset.pi,+tr.dataset.di)));
   }
   draw();
+}
+
+/* Horas de entrada/salida y descanso previo de un persona-día, desde las marcas (metodoDays). */
+function crHoras(pi,di){
+  const crudas=A_MET.filter(r=>r[0]===pi&&r[1]===di&&r.length>4).sort((a,b)=>a[3]-b[3]);
+  const hoy=[]; for(const r of crudas){const q=hoy[hoy.length-1];if(q&&q[4]===r[4]&&r[3]-q[3]<10)continue;hoy.push(r);}
+  const ing=hoy.filter(r=>r[4]===0), sal=hoy.filter(r=>r[4]===1);
+  const e=ing.length?ing[0][3]:null;
+  const sHoy=e!=null?sal.filter(r=>r[3]>e):[];
+  const s=sHoy.length?sHoy[sHoy.length-1][3]:null;
+  let prev=null,prevDi=null;
+  for(let k=di-1;k>=Math.max(0,di-3)&&prev===null;k--){
+    const ss=A_MET.filter(r=>r[0]===pi&&r[1]===k&&r.length>4&&r[4]===1).sort((a,b)=>a[3]-b[3]);
+    if(ss.length){prev=ss[ss.length-1][3];prevDi=k;}
+  }
+  const desc=(prev!=null&&e!=null)?((di-prevDi)*1440+e-prev)/60:null;
+  return {e,s,prev,prevDi,desc};
+}
+
+/* Cuadrito de detalle del cruce: por qué fue exceso de JL y por qué el descanso no fue efectivo. */
+function cruceDetalleFrame(pi,di){
+  const nombre=PRS[pi].n;
+  return {title:nombre,sub:"Cruce jornada × descanso · "+fdateLarga(DAYS[di]),label:"Detalle del día",render:root=>{
+    const p=PRS[pi],f=DAYS[di],cd=CD_META[p.cd]?.label||p.cd,g=p.g||"—";
+    const hh=(()=>{const r=HTD.find(x=>x[0]===pi&&x[1]===di);return r?r[2]/10:null;})();
+    const db=(()=>{const r=DESD.find(x=>x[0]===pi&&x[1]===di);return r?r[2]:null;})();
+    const {e,s,prev,prevDi,desc}=crHoras(pi,di);
+    let h=`<div class="fichahero"><div class="av">${initials(nombre)}</div><div><h3>${esc(nombre)}</h3><div class="fc">${esc(p.c)} · ${esc(g)} · ${esc(cd)}</div></div></div>`;
+    h+=`<div class="fsec"><h4>${esc(fdateLarga(f))}</h4>`;
+    h+=`<div class="kv"><span>Entrada</span><b>${e!=null?hhmm(e):"sin registrar"}</b></div>`;
+    h+=`<div class="kv"><span>Salida</span><b>${s!=null?hhmm(s):"turno sin cerrar"}</b></div>`;
+    h+=`<div class="kv"><span>Jornada trabajada</span><b style="color:#D32F2F">${hh!=null?dur(hh):"—"} · exceso (> 12 h)</b></div>`;
+    if(prev!=null) h+=`<div class="kv"><span>Salida turno anterior (${esc(DOWL[new Date(DAYS[prevDi]+"T00:00:00").getDay()])})</span><b>${hhmm(prev)}</b></div>`;
+    const descTxt=desc!=null?dur(desc):((db!=null?DEB[db]+" h":"—"));
+    h+=`<div class="kv"><span>Descanso entre turnos</span><b style="color:#D32F2F">${descTxt} · no efectivo (&lt; 10 h)</b></div>`;
+    h+=`</div>`;
+    h+=`<div class="drill-note">Entró al cruce porque <b>ese día trabajó ${hh!=null?fmt1(hh):"—"} h</b> (más de 12 h) y <b>solo descansó ${desc!=null?fmt1(desc):(db!=null?DEB[db]:"")+" h"}</b> desde la salida del turno anterior (menos de 10 h entre turnos).</div>`;
+    h+=`<div style="margin-top:12px"><button id="cr-ficha" style="background:#F57C00;color:#fff;border:none;border-radius:8px;padding:9px 15px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer">Ver ficha completa ›</button></div>`;
+    root.innerHTML=h;
+    const btn=root.querySelector("#cr-ficha"); if(btn) btn.onclick=()=>pushDrill(fichaFrame(nombre));
+  }};
 }
 
 /* ----- Jornada corta / falta de descanso efectivo (lista completa, periodo global) ----- */

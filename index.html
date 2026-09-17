@@ -185,8 +185,17 @@
     <div class="grid g1">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Cruce: exceso de jornada + descanso no efectivo</h2></div><span class="hint">respeta el filtro de arriba</span></div>
         <p class="panel__sub">Personas que <b>el mismo día</b> entraron tras un descanso de menos de 10 h <b>y</b> trabajaron más de 12 h. Ordenado por jornada más larga. Click → ficha.</p>
-        <div class="tbl-search"><input id="cr-search" placeholder="🔍 Buscar persona o cargo…"><span class="count" id="cr-count"></span></div>
-        <div class="scroll" style="max-height:560px"><div id="cr-list" class="plist" style="padding:4px"></div></div>
+        <div class="tbl-search">
+          <input id="cr-search" placeholder="🔍 Buscar persona o cargo…">
+          <select class="rksel" id="cr-dow">
+            <option value="">Todos los días</option>
+            <option value="Lun">Lunes</option><option value="Mar">Martes</option><option value="Mié">Miércoles</option><option value="Jue">Jueves</option><option value="Vie">Viernes</option><option value="Sáb">Sábado</option><option value="Dom">Domingo</option>
+          </select>
+          <span class="count" id="cr-count"></span>
+        </div>
+        <div class="scroll" style="max-height:600px">
+          <table class="tbl"><thead><tr><th>Fecha</th><th>Grupo</th><th>Nombre</th><th>CD</th><th class="num">Jornada</th><th>Descanso</th></tr></thead><tbody id="cr-body"></tbody></table>
+        </div>
       </div>
     </div>
     <div class="grid g1">

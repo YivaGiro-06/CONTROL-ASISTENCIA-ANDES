@@ -366,7 +366,7 @@ function construirYEscribir() {
   // ---- índices ----
   const cedsOrden = vivos.map(c => M.personas.get(c)).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
   const PI = new Map(cedsOrden.map((p, i) => [p.cedula, i]));
-  const persons = cedsOrden.map(p => ({ n: p.nombre, c: p.cargo, cd: p.cdId || 'ITAGUI' }));
+  const persons = cedsOrden.map(p => ({ n: p.nombre, c: p.cargo, cd: p.cdId || 'ITAGUI', g: p.grupo || '—' }));
   const permTipoLabels = [...new Set([...M.ga.values()].map(g => g.permiso)
     .filter(t => { const r = resolveTipoPermiso(t); return r && !r.retiro && !r.noPlan; }))]
     .sort((a, b) => a.localeCompare(b, 'es'));
@@ -402,7 +402,7 @@ function construirYEscribir() {
   const REC = ['RNO','RDD','RND','RDF','RNF'];
   for (const ced of vivos) {
     const p = M.personas.get(ced);
-    P.set(ced, { nombre:p.nombre, cargo:p.cargo, id:String(ced), cdId:p?.cdId || 'ITAGUI', asist:0, inas:0, permisos:0, descansos:0,
+    P.set(ced, { nombre:p.nombre, cargo:p.cargo, id:String(ced), cdId:p?.cdId || 'ITAGUI', grupo:p?.grupo || '—', asist:0, inas:0, permisos:0, descansos:0,
       ht:0, dias:0, jornada:0, recTotal:0, rec:Object.fromEntries(REC.map(k => [k, 0])), jornadas14:0,
       atraso:0, incon:0, marcTot:0, metodo:Object.fromEntries(metodoLabels.map(m => [m, 0])),
       marcManualPct:0, sinMarca:0, pausaSi:0, pausaNo:0, retiroDias:0,

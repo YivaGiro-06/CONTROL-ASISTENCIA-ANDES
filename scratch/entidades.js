@@ -15,7 +15,49 @@ export const CDS = {
   'MED_ENVIGADO': { id: 'MED_ENVIGADO', label: 'CD Med Envigado', aliases: ['med envigado', 'envigado', 'cd med envigado', 'udc envigado', 'ud envigado'], color: '#00796B' },
 };
 
+// Regionales (nivel nacional). Cada CD pertenece a una.
+export const REGIONALES = {
+  ANDES:  { id: 'ANDES',  label: 'Andes',  color: '#F57C00' },
+  NORTE:  { id: 'NORTE',  label: 'Norte',  color: '#0288D1' },
+  CENTRO: { id: 'CENTRO', label: 'Centro', color: '#2E7D32' },
+  SUR:    { id: 'SUR',    label: 'Sur',    color: '#7B1FA2' },
+};
+
+// Plazas/ciudades -> region + cdId. Regla global: si el grupo trae "OL" va al cdId OL_*, si no al base.
+// Agregar una plaza nueva = una línea aquí. El match es por substring normalizado (sin acentos).
+export const CIUDADES = [
+  // ANDES
+  { match: ['itagui', 'itagüi'],          region: 'ANDES',  base: 'ITAGUI',       ol: 'OL_ITAGUI' },
+  { match: ['armenia'],                   region: 'ANDES',  base: 'ARMENIA',      ol: 'OL_ARMENIA' },
+  { match: ['forjandes'],                 region: 'ANDES',  base: 'FORJANDES',    ol: 'OL_FORJANDES' },
+  { match: ['manizales'],                 region: 'ANDES',  base: 'MANIZALES',    ol: 'OL_MANIZALES' },
+  { match: ['pereira'],                   region: 'ANDES',  base: 'UC_PEREIRA',   ol: 'OL_PEREIRA' },
+  { match: ['girardota'],                 region: 'ANDES',  base: 'UC_GIRARDOTA', ol: 'OL_GIRARDOTA' },
+  { match: ['aranjuez'],                  region: 'ANDES',  base: 'MED_ARANJUEZ', ol: 'OL_MED_ARANJUEZ' },
+  { match: ['envigado'],                  region: 'ANDES',  base: 'MED_ENVIGADO', ol: 'OL_MED_ENVIGADO' },
+  // NORTE
+  { match: ['santa marta', 'santamarta'], region: 'NORTE',  base: 'SANTA_MARTA',  ol: 'OL_SANTA_MARTA' },
+  { match: ['arenosa'],                   region: 'NORTE',  base: 'ARENOSA',      ol: 'OL_ARENOSA' },
+  { match: ['cucuta'],                    region: 'NORTE',  base: 'CUCUTA',       ol: 'OL_CUCUTA' },
+  // CENTRO
+  { match: ['autosur'],                   region: 'CENTRO', base: 'AUTOSUR',      ol: 'OL_AUTOSUR' },
+  { match: ['siberia'],                   region: 'CENTRO', base: 'SIBERIA',      ol: 'OL_SIBERIA' },
+  { match: ['sibate'],                    region: 'CENTRO', base: 'SIBATE',       ol: 'OL_SIBATE' },
+  // SUR
+  { match: ['yumbo'],                     region: 'SUR',    base: 'UC_YUMBO',     ol: 'OL_YUMBO' },
+  { match: ['tulua'],                     region: 'SUR',    base: 'TULUA',        ol: 'OL_TULUA' },
+];
+
+// cdId -> region (derivado de CIUDADES).
+export const REGION_BY_CD = (() => {
+  const m = {};
+  for (const c of CIUDADES) { m[c.base] = c.region; if (c.ol) m[c.ol] = c.region; }
+  return m;
+})();
+export const resolveRegion = (cdId) => REGION_BY_CD[cdId] || null;
+
 // Grupos GeoVictoria que entran al tablero. Mapeados a su correspondiente CD.
+// Nota: la resolución real de CD/region la hace CIUDADES dentro de resolveGrupo (abajo).
 export const GRUPOS = {
   // CD ITAGÜÍ
   'ITAGUI T2': { id: 'T2', label: 'Itagüí T2', aliases: ['itagui t2', 'itagüi t2'], incluir: true, cdId: 'ITAGUI' },
@@ -81,13 +123,15 @@ const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0
 
 export function resolveGrupo(raw) {
   const n = norm(raw);
-  // Split OL/UC + Manizales (Regional Andes). Debe ir ANTES del match genérico por alias
-  // de CD: como "girardota" es substring de "ol girardota", el genérico los mezclaría.
-  const g = (cdId) => ({ clave: raw, id: cdId, label: raw, incluir: true, cdId });
+  // Resolución nacional por plaza (CIUDADES). Debe ir ANTES del match genérico por alias de CD:
+  // como "girardota" es substring de "ol girardota", el genérico los mezclaría. Regla global de OL.
   const esOL = /(^|\s)ol(\s|$)/.test(n);            // grupo marcado "OL" = Operador Logístico
-  if (n.includes('manizales')) return g('MANIZALES');                     // Manizales: CD único, sin OL/UC
-  if (n.includes('pereira'))   return g(esOL ? 'OL_PEREIRA'   : 'UC_PEREIRA');
-  if (n.includes('girardota')) return g(esOL ? 'OL_GIRARDOTA' : 'UC_GIRARDOTA');
+  for (const c of CIUDADES) {
+    if (c.match.some(t => n.includes(t))) {
+      const cdId = (esOL && c.ol) ? c.ol : c.base;
+      return { clave: raw, id: cdId, label: raw, incluir: true, cdId, region: c.region };
+    }
+  }
   for (const [clave, cfg] of Object.entries(GRUPOS)) {
     if (norm(clave) === n || (cfg.aliases || []).some(a => norm(a) === n)) return { clave, ...cfg };
   }
@@ -118,6 +162,7 @@ export const colorCargo = (cargo, orden) => RAMPA_CARGOS[orden % RAMPA_CARGOS.le
 
 export function catalogosExportables(cargosDescubiertos = [], permisosDescubiertos = []) {
   return {
+    regionales: Object.values(REGIONALES),
     cds: Object.values(CDS),
     grupos: Object.entries(GRUPOS).filter(([, c]) => c.incluir).map(([clave, c]) => ({ clave, ...c })),
     estados: Object.entries(ESTADOS).map(([clave, c]) => ({ clave, ...c })),
