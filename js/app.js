@@ -785,6 +785,40 @@ function descanso(){
   mkc("c_desccargo",{type:"bar",data:{labels:cd.map(c=>c.cargo),datasets:[{label:"Descansos",data:cd.map(c=>c.descansos),backgroundColor:cd.map((c,i)=>CC[i%CC.length]),borderRadius:4}]},
     options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{...AG,ticks:{callback:fmt}},y:{...AN,ticks:{font:{size:9}}}},
       onClick:(e,el)=>{if(!el.length)return;const c=cd[el[0].index].cargo;openDrill(cargoPeopleFrame(c,PARR.filter(p=>p.cargo===c),p=>p.descansos,fmt,"","Descansos"));}}});
+  buildCruceJL();
+}
+
+/* ----- Cruce: exceso de jornada (>12 h) + descanso no efectivo (<10 h) el MISMO día ----- */
+function buildCruceJL(){
+  const jl={};                              // pi|di -> banda JL, solo >12 h (bandas 3,4,5)
+  for(const [pi,di,b] of JLD){ if(b>=3) jl[pi+"|"+di]=b; }
+  const ht={};                              // pi|di -> horas trabajadas
+  for(const r of HTD){ ht[r[0]+"|"+r[1]]=r[2]/10; }
+  const rows=[];
+  for(const [pi,di,b] of DESD){             // descanso no efectivo (<10 h = bandas 0 y 1)
+    if(b>1) continue;
+    const k=pi+"|"+di, jb=jl[k];
+    if(jb===undefined) continue;            // ese día no trabajó >12 h -> no aplica
+    rows.push({pi,di,jb,db:b,h:ht[k]??0});
+  }
+  rows.sort((x,y)=>y.h-x.h);                 // jornada más larga primero
+  let q="";
+  const inp=$("#cr-search"); if(inp) inp.oninput=e=>{q=e.target.value.toLowerCase();draw();};
+  function draw(){
+    let rs=rows;
+    if(q) rs=rs.filter(r=>PRS[r.pi].n.toLowerCase().includes(q)||PRS[r.pi].c.toLowerCase().includes(q));
+    const nPer=new Set(rs.map(r=>r.pi)).size;
+    const cnt=$("#cr-count"); if(cnt) cnt.textContent=fmt(rs.length)+" casos · "+fmt(nPer)+" personas";
+    const list=$("#cr-list"); if(!list) return;
+    if(!rs.length){ list.innerHTML=`<div class="rkempty">Sin casos en el periodo/CD seleccionado.</div>`; return; }
+    list.innerHTML=rs.map((r,i)=>{const p=PRS[r.pi],f=DAYS[r.di],cd=CD_META[p.cd]?.label||p.cd;
+      return `<div class="prow" data-n="${esc(p.n)}"><div class="av" style="background:linear-gradient(140deg,#e53935,#b71c1c)">${i+1}</div>
+        <div class="pn"><b>${esc(p.n)}</b><span>${esc(p.c)} · ${esc(cd)} · ${esc(fdateLarga(f))}</span></div>
+        <div class="pv" style="color:#D32F2F">${fmt1(r.h)} h<small>desc. ${DEB[r.db]} h · no efectivo</small></div></div>`;
+    }).join("");
+    list.querySelectorAll(".prow").forEach(el=>el.onclick=()=>openDrill(fichaFrame(el.dataset.n)));
+  }
+  draw();
 }
 
 /* ----- Jornada corta / falta de descanso efectivo (lista completa, periodo global) ----- */
