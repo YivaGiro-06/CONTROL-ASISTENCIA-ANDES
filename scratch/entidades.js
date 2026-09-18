@@ -45,10 +45,12 @@ export const CDS = {
   'OL_SIBATE':  { id: 'OL_SIBATE',  label: 'OL Sibaté',  region: 'CENTRO', aliases: ['ol sibate'], color: '#0891b2' },
 
   // REGIONAL SUR
-  'UC_YUMBO': { id: 'UC_YUMBO', label: 'UC Yumbo', region: 'SUR', aliases: ['yumbo', 'uc yumbo', 'cd yumbo', 'ud yumbo'], color: '#7c3aed' },
-  'OL_YUMBO': { id: 'OL_YUMBO', label: 'OL Yumbo', region: 'SUR', aliases: ['ol yumbo'], color: '#0891b2' },
-  'TULUA':    { id: 'TULUA',    label: 'CD Tuluá', region: 'SUR', aliases: ['tulua', 'cd tulua', 'ud tulua'], color: '#9333ea' },
-  'OL_TULUA': { id: 'OL_TULUA', label: 'OL Tuluá', region: 'SUR', aliases: ['ol tulua'], color: '#0891b2' },
+  'UC_YUMBO':         { id: 'UC_YUMBO',         label: 'UC Yumbo',        region: 'SUR', aliases: ['yumbo', 'uc yumbo', 'cd yumbo', 'ud yumbo'], color: '#7c3aed' },
+  'OL_YUMBO':         { id: 'OL_YUMBO',         label: 'OL Yumbo',        region: 'SUR', aliases: ['ol yumbo'], color: '#0891b2' },
+  'CALI':             { id: 'CALI',             label: 'CD Cali',         region: 'SUR', aliases: ['cali', 'cd cali', 'ud cali', 'uc cali'], color: '#8b5cf6' },
+  'OL_CALI':          { id: 'OL_CALI',          label: 'OL Cali',         region: 'SUR', aliases: ['ol cali'], color: '#0891b2' },
+  'TULUA':            { id: 'TULUA',            label: 'CD Tuluá',        region: 'SUR', aliases: ['tulua', 'tuluá', 'cd tulua', 'cd tuluá', 'ud tulua'], color: '#6b21a8' },
+  'OL_TULUA':         { id: 'OL_TULUA',         label: 'OL Tuluá',        region: 'SUR', aliases: ['ol tulua', 'ol tuluá'], color: '#0891b2' },
 };
 
 // Plazas/ciudades -> region + cdId.
@@ -72,7 +74,8 @@ export const CIUDADES = [
   { match: ['sibate'],                    region: 'CENTRO', base: 'SIBATE',       ol: 'OL_SIBATE' },
   // SUR
   { match: ['yumbo'],                     region: 'SUR',    base: 'UC_YUMBO',     ol: 'OL_YUMBO' },
-  { match: ['tulua'],                     region: 'SUR',    base: 'TULUA',        ol: 'OL_TULUA' },
+  { match: ['cali'],                      region: 'SUR',    base: 'CALI',         ol: 'OL_CALI' },
+  { match: ['tulua', 'tuluá'],            region: 'SUR',    base: 'TULUA',        ol: 'OL_TULUA' },
 ];
 
 export const REGION_BY_CD = (() => {
@@ -114,8 +117,10 @@ export const GRUPOS = {
   // SUR
   'UC YUMBO': { id: 'YMB', label: 'UC Yumbo', aliases: ['yumbo', 'uc yumbo', 'cd yumbo', 'ud yumbo'], incluir: true, cdId: 'UC_YUMBO', region: 'SUR' },
   'OL YUMBO': { id: 'OL_YMB', label: 'OL Yumbo', aliases: ['ol yumbo'], incluir: true, cdId: 'OL_YUMBO', region: 'SUR' },
-  'CD TULUA': { id: 'TLU', label: 'CD Tuluá', aliases: ['tulua', 'cd tulua', 'ud tulua'], incluir: true, cdId: 'TULUA', region: 'SUR' },
-  'OL TULUA': { id: 'OL_TLU', label: 'OL Tuluá', aliases: ['ol tulua'], incluir: true, cdId: 'OL_TULUA', region: 'SUR' },
+  'CD CALI': { id: 'CLI', label: 'CD Cali', aliases: ['cali', 'cd cali', 'ud cali', 'uc cali'], incluir: true, cdId: 'CALI', region: 'SUR' },
+  'OL CALI': { id: 'OL_CLI', label: 'OL Cali', aliases: ['ol cali'], incluir: true, cdId: 'OL_CALI', region: 'SUR' },
+  'CD TULUA': { id: 'TLU', label: 'CD Tuluá', aliases: ['tulua', 'tuluá', 'cd tulua', 'cd tuluá', 'ud tulua'], incluir: true, cdId: 'TULUA', region: 'SUR' },
+  'OL TULUA': { id: 'OL_TLU', label: 'OL Tuluá', aliases: ['ol tulua', 'ol tuluá'], incluir: true, cdId: 'OL_TULUA', region: 'SUR' },
 };
 
 // Estados del día. El orden define el índice que se guarda en las particiones.
