@@ -281,3 +281,68 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
 .cd-card__mval { font-size: 16px; font-weight: 700; color: var(--ink); }
 .cd-card__mlbl { font-size: 11px; color: var(--muted); font-weight: 500; }
 .cd-badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #fff; background: var(--blue-2); margin-left: 6px; }
+
+/* Desplegables de Selección Múltiple con Checkbox */
+.msel-wrap { position: relative; display: inline-flex; flex-direction: column; gap: 5px; }
+.msel-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; border: 1px solid rgba(255,255,255,.16); border-radius: 9px;
+  font-family: inherit; font-size: 13px; font-weight: 600; color: #fff;
+  background: rgba(255,255,255,.08); cursor: pointer; min-width: 160px; max-width: 260px;
+  transition: all 0.15s ease; text-align: left; box-sizing: border-box;
+}
+.msel-btn:hover { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.3); }
+.msel-btn.on { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(252,163,17,.22); background: rgba(252,163,17,.12); }
+.msel-txt { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msel-arrow { font-size: 9px; color: #cbd5e1; transition: transform 0.15s ease; margin-left: 4px; }
+.msel-btn.on .msel-arrow { transform: rotate(180deg); }
+
+.msel-pop {
+  position: absolute; top: calc(100% + 5px); left: 0; z-index: 9999;
+  min-width: 240px; max-width: 320px; background: #14213d;
+  border: 1px solid rgba(255,255,255,.2); border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5); padding: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.msel-search-row { display: flex; gap: 6px; align-items: center; }
+.msel-search {
+  width: 100%; padding: 6px 10px; border: 1px solid rgba(255,255,255,.18);
+  border-radius: 7px; background: rgba(255,255,255,.08); color: #fff;
+  font-family: inherit; font-size: 12px; outline: none; box-sizing: border-box;
+}
+.msel-search:focus { border-color: var(--gold); background: rgba(255,255,255,.12); }
+.msel-actions { display: flex; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.12); padding-bottom: 8px; }
+.msel-act-btn {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+  color: #cbd5e1; border-radius: 6px; font-size: 11px; font-weight: 700;
+  padding: 4px 9px; cursor: pointer; transition: 0.12s; flex: 1; text-align: center;
+}
+.msel-act-btn:hover { background: rgba(252,163,17,.2); color: var(--gold-2); border-color: var(--gold); }
+.msel-list { max-height: 230px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 2px; }
+.msel-list::-webkit-scrollbar { width: 5px; }
+.msel-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+.msel-opt {
+  display: flex; align-items: center; gap: 9px; padding: 6px 8px;
+  border-radius: 6px; cursor: pointer; user-select: none; transition: 0.1s;
+}
+.msel-opt:hover { background: rgba(255,255,255,.1); }
+.msel-opt input[type="checkbox"] { display: none; }
+.msel-chk {
+  width: 17px; height: 17px; border: 1.5px solid rgba(255,255,255,.35);
+  border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.05); transition: all 0.12s ease; flex-shrink: 0;
+}
+.msel-opt input[type="checkbox"]:checked + .msel-chk {
+  background: var(--gold); border-color: var(--gold);
+}
+.msel-chk::after {
+  content: "✓"; font-size: 12px; font-weight: 900; line-height: 1;
+  display: none; color: var(--navy);
+}
+.msel-opt input[type="checkbox"]:checked + .msel-chk::after { display: block; }
+.msel-lbl { font-size: 12.5px; font-weight: 600; color: #e2e8f0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msel-cnt { font-size: 10.5px; font-weight: 700; background: rgba(255,255,255,.1); color: #94a3b8; padding: 1px 6px; border-radius: 10px; }
+.msel-badge {
+  background: var(--gold); color: var(--navy); font-size: 11px; font-weight: 800;
+  padding: 1px 6px; border-radius: 10px; margin-left: 4px; flex-shrink: 0;
+}

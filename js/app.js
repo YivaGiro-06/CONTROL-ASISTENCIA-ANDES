@@ -342,10 +342,10 @@ const DIDX={}; DAYS.forEach((f,i)=>DIDX[f]=i);
 let RG=null; // {a,b} índices de día inclusivos, o null=todo
 function inRG(di){return !RG||(di>=RG.a&&di<=RG.b);}
 function rangeDayIdx(){const o=[];for(let i=0;i<DAYS.length;i++) if(inRG(i)) o.push(i); return o;}
-let CG=""; // cargo seleccionado ("" = todos)
-function inCG(pi){return !CG||PRS[pi].c===CG;}
-let REG_FILTER=""; // "" = Nacional (Todas)
-let CD_FILTER=""; // CD seleccionado ("" = Todos)
+let CG=[]; // cargos seleccionados ([] = todos)
+function inCG(pi){return !CG||!CG.length||CG.includes(PRS[pi].c);}
+let REG_FILTER=[]; // regiones seleccionadas ([] = todas)
+let CD_FILTER=[]; // CDs seleccionados ([] = todos)
 const REGIONAL_META={
   ANDES:{id:'ANDES',label:'Regional Andes',color:'#FCA311'},
   NORTE:{id:'NORTE',label:'Regional Norte',color:'#2563eb'},
@@ -404,21 +404,28 @@ function getPersonRegion(p){
   return CD_META[cdId]?.region || null;
 }
 function inREG(pi){
-  if(!REG_FILTER) return true;
+  if(!REG_FILTER||!REG_FILTER.length) return true;
   const p = PRS[pi] || A_PARR.find(x => x.pi === pi);
-  return getPersonRegion(p) === REG_FILTER;
+  return REG_FILTER.includes(getPersonRegion(p));
 }
-function inCD(pi){return !CD_FILTER||(PRS[pi]&&(PRS[pi].cd===CD_FILTER||PRS[pi].cdId===CD_FILTER));}
+function inCD(pi){
+  if(!CD_FILTER||!CD_FILTER.length) return true;
+  return PRS[pi] && (CD_FILTER.includes(PRS[pi].cd) || CD_FILTER.includes(PRS[pi].cdId));
+}
 function applyRange(a,b){RG=(a==null)?null:{a:Math.min(a,b),b:Math.max(a,b)};applyScope();}
-function applyCargo(c){CG=c||"";applyScope();}
-function applyReg(reg){REG_FILTER=reg||"";CD_FILTER="";applyScope();}
-function applyCd(cd){CD_FILTER=cd||"";applyScope();}
+function applyCargo(c){CG=Array.isArray(c)?c:(c?[c]:[]);applyScope();}
+function applyReg(reg){REG_FILTER=Array.isArray(reg)?reg:(reg?[reg]:[]);CD_FILTER=[];applyScope();}
+function applyCd(cd){CD_FILTER=Array.isArray(cd)?cd:(cd?[cd]:[]);applyScope();}
 function applyScope(){
-  if(!RG&&!CG&&!REG_FILTER&&!CD_FILTER){PARR=A_PARR;EV=A_EV;K=A_K;CS=A_CS;HTD=A_HTD;INCD=A_INCD;INAD=A_INAD;DAY=A_DAY;MET=A_MET;JLD=A_JLD;DESD=A_DESD;PERMDS=PERMD;buildEvIdx();buildInconByDate();return;}
+  const hasRG = !!RG;
+  const hasCG = Array.isArray(CG) && CG.length > 0;
+  const hasREG = Array.isArray(REG_FILTER) && REG_FILTER.length > 0;
+  const hasCD = Array.isArray(CD_FILTER) && CD_FILTER.length > 0;
+  if(!hasRG && !hasCG && !hasREG && !hasCD){PARR=A_PARR;EV=A_EV;K=A_K;CS=A_CS;HTD=A_HTD;INCD=A_INCD;INAD=A_INAD;DAY=A_DAY;MET=A_MET;JLD=A_JLD;DESD=A_DESD;PERMDS=PERMD;buildEvIdx();buildInconByDate();return;}
   const f=r=>inRG(r[1])&&inCG(r[0])&&inREG(r[0])&&inCD(r[0]);
   HTD=A_HTD.filter(f);INCD=A_INCD.filter(f);INAD=A_INAD.filter(f);DAY=A_DAY.filter(f);MET=A_MET.filter(f);JLD=A_JLD.filter(f);DESD=A_DESD.filter(f);PERMDS=PERMD.filter(f);
   const dA=RG?DAYS[RG.a]:null,dB=RG?DAYS[RG.b]:null;
-  EV=A_EV.filter(e=>(!RG||(e.fecha>=dA&&e.fecha<=dB))&&(!CG||e.cargo===CG)&&(!REG_FILTER||(getPersonRegion(A_PARR.find(p=>p.nombre===e.nombre))===REG_FILTER))&&(!CD_FILTER||(A_PARR.find(p=>p.nombre===e.nombre)?.cdId===CD_FILTER)));
+  EV=A_EV.filter(e=>(!RG||(e.fecha>=dA&&e.fecha<=dB))&&(!hasCG||CG.includes(e.cargo))&&(!hasREG||REG_FILTER.includes(getPersonRegion(A_PARR.find(p=>p.nombre===e.nombre))))&&(!hasCD||CD_FILTER.includes(A_PARR.find(p=>p.nombre===e.nombre)?.cdId)));
   const pp={};
   const gp=pi=>pp[pi]||(pp[pi]={pi,nombre:PRS[pi].n,cargo:PRS[pi].c,asist:0,inas:0,permisos:0,descansos:0,retiroDias:0,ht:0,dias:0,jornadas14:0,atraso:0,incon:0,marcTot:0,metodo:{'Reloj Control':0,'Marca Manual':0,'App':0,'Otro':0},sinMarca:0,pausaSi:0,pausaNo:0,recTotal:0,rec:{RNO:0,RDD:0,RND:0,RDF:0,RNF:0},fechas_inas:[],meses:{},dows:{},permTipos:{}});
   DAY.forEach(([pi,di,st])=>{const o=gp(pi),s=STATE_NAMES[st];if(s==='asist')o.asist++;else if(s==='inas'){o.inas++;o.fechas_inas.push(DAYS[di]);}else if(s==='permiso')o.permisos++;else if(s==='descanso')o.descansos++;else if(s==='retiro')o.retiroDias++;});
@@ -1096,40 +1103,154 @@ function show(v){CURV=v;document.querySelectorAll(".tab").forEach(b=>b.classList
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>show(b.dataset.v));
 function refreshAll(){for(const id in charts){try{charts[id].destroy()}catch(e){}delete charts[id];}done={};R[CURV]();done[CURV]=true;setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}),60);}
 
-/* ---- barra de filtro (limpia, desplegables) ---- */
+/* ---- barra de filtro (desplegables con seleccion multiple) ---- */
 function monthsPresent(){const s=[];DMETA.forEach(m=>{if(!s.includes(m.mes))s.push(m.mes);});return MES_ORDER.filter(m=>s.includes(m));}
 function monthRangeIdx(mes){let a=-1,b=-1;DAYS.forEach((f,i)=>{if(DMETA[i].mes===mes){if(a<0)a=i;b=i;}});return[a,b];}
 function weeksOfMonth(mes){const[a,b]=monthRangeIdx(mes);const g={},order=[];for(let i=a;i<=b;i++){const w=DMETA[i].iso;if(!(w in g)){g[w]=[];order.push(w);}g[w].push(i);}return order.map((w,k)=>({n:k+1,ids:g[w]}));}
+
+function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues, onChange }) {
+  const selArr = Array.isArray(selectedValues) ? selectedValues : (selectedValues ? [selectedValues] : []);
+  const selSet = new Set(selArr);
+
+  let summary = placeholder;
+  if (selSet.size === 1) {
+    const found = options.find(o => String(o.val) === String([...selSet][0]));
+    summary = found ? found.label : [...selSet][0];
+  } else if (selSet.size > 1 && selSet.size < options.length) {
+    summary = `${selSet.size} seleccionados`;
+  }
+
+  const container = document.createElement("div");
+  container.className = "msel-wrap";
+  container.id = `msel-wrap-${id}`;
+
+  container.innerHTML = `
+    <span class="flab">${labelHtml}</span>
+    <button type="button" class="msel-btn${selSet.size > 0 && selSet.size < options.length ? ' on' : ''}" id="msel-btn-${id}">
+      <span class="msel-txt">${esc(summary)}</span>
+      ${selSet.size > 0 && selSet.size < options.length ? `<span class="msel-badge">${selSet.size}</span>` : ''}
+      <span class="msel-arrow">▼</span>
+    </button>
+    <div class="msel-pop" id="msel-pop-${id}" style="display:none">
+      ${options.length > 5 ? `<div class="msel-search-row"><input type="text" class="msel-search" id="msel-srch-${id}" placeholder="🔍 Buscar..." autocomplete="off"></div>` : ''}
+      <div class="msel-actions">
+        <button type="button" class="msel-act-btn msel-all" id="msel-all-${id}">✓ Todos</button>
+        <button type="button" class="msel-act-btn msel-none" id="msel-none-${id}">✗ Ninguno</button>
+      </div>
+      <div class="msel-list" id="msel-list-${id}">
+        ${options.map(opt => {
+          const isChecked = selSet.size === 0 || selSet.has(opt.val);
+          return `
+            <label class="msel-opt">
+              <input type="checkbox" value="${esc(opt.val)}" ${isChecked ? 'checked' : ''}>
+              <span class="msel-chk"></span>
+              <span class="msel-lbl">${esc(opt.label)}</span>
+              ${opt.count != null ? `<span class="msel-cnt">${opt.count}</span>` : ''}
+            </label>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  const btn = container.querySelector(`#msel-btn-${id}`);
+  const pop = container.querySelector(`#msel-pop-${id}`);
+  const list = container.querySelector(`#msel-list-${id}`);
+  const srch = container.querySelector(`#msel-srch-${id}`);
+  const btnAll = container.querySelector(`#msel-all-${id}`);
+  const btnNone = container.querySelector(`#msel-none-${id}`);
+
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    const isOpen = pop.style.display !== "none";
+    document.querySelectorAll(".msel-pop").forEach(p => p.style.display = "none");
+    document.querySelectorAll(".msel-btn").forEach(b => b.classList.remove("on"));
+    if (!isOpen) {
+      pop.style.display = "flex";
+      btn.classList.add("on");
+      if (srch) { srch.value = ""; filterItems(""); srch.focus(); }
+    }
+  };
+
+  pop.onclick = (e) => e.stopPropagation();
+
+  function filterItems(q) {
+    const query = q.toLowerCase();
+    list.querySelectorAll(".msel-opt").forEach(opt => {
+      const txt = opt.querySelector(".msel-lbl").textContent.toLowerCase();
+      opt.style.display = txt.includes(query) ? "flex" : "none";
+    });
+  }
+
+  if (srch) {
+    srch.oninput = () => filterItems(srch.value);
+  }
+
+  function emitChange() {
+    const checked = [];
+    list.querySelectorAll("input[type='checkbox']:checked").forEach(cb => checked.push(cb.value));
+    if (checked.length === options.length) {
+      onChange([]);
+    } else {
+      onChange(checked);
+    }
+  }
+
+  list.querySelectorAll("input[type='checkbox']").forEach(cb => {
+    cb.onchange = emitChange;
+  });
+
+  btnAll.onclick = () => {
+    list.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = true);
+    emitChange();
+  };
+
+  btnNone.onclick = () => {
+    list.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
+    emitChange();
+  };
+
+  return container;
+}
+
 function buildFilterBar(){
   const fb=$("#filterbar"),months=monthsPresent();
   const CARGOS=[...new Set(PRS.map(p=>p.c))].sort((a,b)=>a.localeCompare(b,"es"));
   const ALL_CDS = DATA.cds || CD_LIST;
-  let selMonth="",selWeek="",selDay="",selCargo="";
+  let selMonth="",selWeek="",selDay="";
+
   function curRange(){
     if(selDay!=="")return[+selDay,+selDay];
     if(selMonth&&selWeek!==""){const wk=weeksOfMonth(selMonth).find(x=>String(x.n)===String(selWeek));if(wk)return[wk.ids[0],wk.ids[wk.ids.length-1]];}
     if(selMonth){const[a,b]=monthRangeIdx(selMonth);return[a,b];}
     return null;
   }
+
   function statusTxt(){const r=curRange();if(!r)return"Todo · "+DAYS.length+" días";if(r[0]===r[1])return fdate(DAYS[r[0]])+" · "+(DOWF[DMETA[r[0]].dow]||"");return fdate(DAYS[r[0]])+" → "+fdate(DAYS[r[1]])+" · "+(r[1]-r[0]+1)+" días";}
   function apply(){const r=curRange();applyRange(r?r[0]:null,r?r[1]:null);refreshAll();draw();}
+
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".msel-pop").forEach(p => p.style.display = "none");
+    document.querySelectorAll(".msel-btn").forEach(b => b.classList.remove("on"));
+  });
+
   function draw(){
     const wk=selMonth?weeksOfMonth(selMonth):[];
     let dayIds=[];
     if(selMonth){if(selWeek!==""){const g=wk.find(x=>String(x.n)===String(selWeek));dayIds=g?g.ids:[];}else{const[a,b]=monthRangeIdx(selMonth);for(let i=a;i<=b;i++)dayIds.push(i);}}
-    const availCds = ALL_CDS.filter(c => !REG_FILTER || c.region === REG_FILTER || CD_META[c.id]?.region === REG_FILTER);
-    const regLabel = REG_FILTER ? (REGIONAL_META[REG_FILTER]?.label || REG_FILTER) : "🌐 Cobertura Nacional (Todas)";
-    const cdLabel = CD_FILTER ? (ALL_CDS.find(c=>c.id===CD_FILTER)?.label || CD_FILTER) : (REG_FILTER ? "Todos los CDs (" + (REGIONAL_META[REG_FILTER]?.label || REG_FILTER) + ")" : "Todos los CDs");
+
+    const availCds = ALL_CDS.filter(c => !REG_FILTER.length || REG_FILTER.includes(c.region) || REG_FILTER.includes(CD_META[c.id]?.region));
+    const regLabel = REG_FILTER.length ? (REG_FILTER.length === 1 ? (REGIONAL_META[REG_FILTER[0]]?.label || REG_FILTER[0]) : `${REG_FILTER.length} regionales`) : "";
+    const cdLabel = CD_FILTER.length ? (CD_FILTER.length === 1 ? (ALL_CDS.find(c=>c.id===CD_FILTER[0])?.label || CD_FILTER[0]) : `${CD_FILTER.length} CDs`) : "";
+    const cargoLabel = CG.length ? (CG.length === 1 ? CG[0] : `${CG.length} cargos`) : "";
+
     fb.innerHTML=`
-      <div class="frow">
-        <div class="fsel"><span class="flab">🌎 Regional</span><select id="fReg"><option value="">🌐 Cobertura Nacional (Todas)</option>${Object.values(REGIONAL_META).map(r=>`<option value="${r.id}"${REG_FILTER===r.id?" selected":""}>${esc(r.label)}</option>`).join("")}</select></div>
-        <div class="fsel"><span class="flab">🏭 CD / Centro</span><select id="fCd"><option value="">${REG_FILTER ? 'Todos los CDs de ' + esc(REGIONAL_META[REG_FILTER]?.label||REG_FILTER) : 'Todos los CDs (Nacional)'}</option>${availCds.map(c=>`<option value="${c.id}"${CD_FILTER===c.id?" selected":""}>${esc(c.label)}</option>`).join("")}</select></div>
+      <div class="frow" id="frow-main">
         <div class="fsel"><span class="flab">📅 Mes</span><select id="fMes"><option value="">Todos los meses</option>${months.map(m=>`<option value="${m}"${selMonth===m?" selected":""}>${m}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">🗓️ Semana</span><select id="fSem" ${selMonth?"":"disabled"}><option value="">Todas</option>${wk.map(w=>`<option value="${w.n}"${String(selWeek)===String(w.n)?" selected":""}>Semana ${w.n}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">📆 Día</span><select id="fDia" ${selMonth?"":"disabled"}><option value="">Todos</option>${dayIds.map(i=>`<option value="${i}"${String(selDay)===String(i)?" selected":""}>${fdate(DAYS[i])} · ${DMETA[i].dow}</option>`).join("")}</select></div>
-        <div class="fsel"><span class="flab">👤 Cargo</span><select id="fCargo"><option value="">Todos los cargos</option>${CARGOS.map(c=>`<option value="${esc(c)}"${selCargo===c?" selected":""}>${esc(c)}</option>`).join("")}</select></div>
         <span style="flex:1"></span>
-        <span class="fnow" id="fnow">${(REG_FILTER ? esc(regLabel) + " · " : "") + (CD_FILTER ? esc(cdLabel) + " · " : "") + (selCargo ? esc(selCargo) + " · " : "") + statusTxt()}</span>
+        <span class="fnow" id="fnow">${[regLabel, cdLabel, cargoLabel, statusTxt()].filter(Boolean).join(" · ")}</span>
       </div>
       <div class="frow sub">
         <span class="flab">Rango exacto</span>
@@ -1139,14 +1260,65 @@ function buildFilterBar(){
         <button class="fbtn" id="fApply">Aplicar rango</button>
         <button class="fbtn ghost" id="fClear">Ver todo</button>
       </div>`;
-    $("#fReg").onchange=e=>{applyReg(e.target.value);refreshAll();draw();};
-    $("#fCd").onchange=e=>{applyCd(e.target.value);refreshAll();draw();};
-    $("#fCargo").onchange=e=>{selCargo=e.target.value;applyCargo(selCargo);refreshAll();draw();};
+
+    const frowMain = fb.querySelector("#frow-main");
+
+    // 1. Regional Multi-Select
+    const regOptions = Object.values(REGIONAL_META).map(r => ({
+      val: r.id,
+      label: r.label,
+      count: A_PARR.filter(p => getPersonRegion(p) === r.id).length
+    }));
+    const regWidget = renderMultiSelect({
+      id: "fReg",
+      labelHtml: "🌎 Regional",
+      placeholder: "🌐 Cobertura Nacional",
+      options: regOptions,
+      selectedValues: REG_FILTER,
+      onChange: (vals) => { applyReg(vals); refreshAll(); draw(); }
+    });
+
+    // 2. CD Multi-Select
+    const cdOptions = availCds.map(c => ({
+      val: c.id,
+      label: c.label,
+      count: A_PARR.filter(p => (p.cdId === c.id || p.cd === c.id) && (!REG_FILTER.length || REG_FILTER.includes(getPersonRegion(p)))).length
+    }));
+    const cdWidget = renderMultiSelect({
+      id: "fCd",
+      labelHtml: "🏭 CD / Centro",
+      placeholder: REG_FILTER.length ? `Todos los CDs` : "Todos los CDs (Nacional)",
+      options: cdOptions,
+      selectedValues: CD_FILTER,
+      onChange: (vals) => { applyCd(vals); refreshAll(); draw(); }
+    });
+
+    // 3. Cargo Multi-Select
+    const cargoOptions = CARGOS.map(c => ({
+      val: c,
+      label: c,
+      count: A_PARR.filter(p => p.c === c && (!REG_FILTER.length || REG_FILTER.includes(getPersonRegion(p))) && (!CD_FILTER.length || CD_FILTER.includes(p.cdId || p.cd))).length
+    }));
+    const cargoWidget = renderMultiSelect({
+      id: "fCargo",
+      labelHtml: "👤 Cargo",
+      placeholder: "Todos los cargos",
+      options: cargoOptions,
+      selectedValues: CG,
+      onChange: (vals) => { applyCargo(vals); refreshAll(); draw(); }
+    });
+
+    const mesEl = frowMain.querySelector("#fMes").parentElement;
+    frowMain.insertBefore(regWidget, mesEl);
+    frowMain.insertBefore(cdWidget, mesEl);
+    const fnowEl = frowMain.querySelector("#fnow");
+    frowMain.insertBefore(cargoWidget, fnowEl);
+
     $("#fMes").onchange=e=>{selMonth=e.target.value;selWeek="";selDay="";apply();};
     $("#fSem").onchange=e=>{selWeek=e.target.value;selDay="";apply();};
     $("#fDia").onchange=e=>{selDay=e.target.value;apply();};
     $("#fApply").onclick=()=>{const d=$("#fDesde").value,h=$("#fHasta").value;if(!d||!h){return;}const a=DIDX[d],b=DIDX[h];if(a==null||b==null){$("#fnow").textContent="Fechas sin datos";return;}selMonth="";selWeek="";selDay="";applyRange(a,b);refreshAll();draw();$("#fnow").textContent=fdate(DAYS[Math.min(a,b)])+" → "+fdate(DAYS[Math.max(a,b)]);};
-    $("#fClear").onclick=()=>{selMonth="";selWeek="";selDay="";selCargo="";CG="";applyReg("");applyCd("");applyRange(null);refreshAll();draw();};
+    $("#fClear").onclick=()=>{selMonth="";selWeek="";selDay="";CG=[];REG_FILTER=[];CD_FILTER=[];applyRange(null);refreshAll();draw();};
   }
   draw();
 }
