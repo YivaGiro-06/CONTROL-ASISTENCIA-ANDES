@@ -128,6 +128,7 @@ for (const k of aus) {
   if (!r) { refPerdidas++; perdidas.push(k); continue; }
   if (r.s === 1) refInas++;
   else if (r.s === 3 && festivos.has(f)) refDesc++;
+  else if (f === hasta && r.s === 5) { /* fecha de actualización (corte): omitida por regla de negocio */ }
   else refOtro++;
 }
 console.log(`      ausencias del Excel: ${aus.size} · como inasistencia: ${refInas} · como descanso por festivo: ${refDesc} · otro estado: ${refOtro}`);

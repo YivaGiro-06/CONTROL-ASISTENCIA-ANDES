@@ -1,15 +1,12 @@
-# Control de Asistencia · Regional Andes
+# Control de Asistencia · Cobertura Nacional
 
 Tablero de asistencia, ausentismo, calidad de marcaje, jornada laboral y descanso
-efectivo para el personal operativo de los 7 Centros de Distribución de la **Regional Andes** (LIS · Bavaria/AB InBev):
+efectivo para el personal operativo de los Centros de Distribución a nivel **NACIONAL** (LIS · Bavaria/AB InBev):
 
-1. **CD Itagüí**
-2. **CD Armenia**
-3. **CD Forjandes**
-4. **CD Girardota**
-5. **CD Pereira**
-6. **CD Med Aranjuez**
-7. **CD Med Envigado**
+1. **Regional Andes**: CD Itagüí, CD Armenia, CD Forjandes, CD Manizales, UC Pereira, OL Pereira, UC Girardota, OL Girardota, CD Med Aranjuez, CD Med Envigado
+2. **Regional Norte**: CD Santa Marta, OL Santa Marta, CD Arenosa, OL Arenosa, CD Cúcuta, OL Cúcuta
+3. **Regional Centro**: CD Autosur, OL Autosur, CD Siberia, OL Siberia, CD Sibaté, OL Sibaté
+4. **Regional Sur**: UC Yumbo, OL Yumbo, CD Tuluá, OL Tuluá
 
 Datos extraídos y pre-procesados de GeoVictoria.
 

@@ -105,9 +105,9 @@ const fdate=f=>f.slice(8,10)+"/"+f.slice(5,7);
 const DOWF={"Lun":"Lunes","Mar":"Martes","Mié":"Miércoles","Jue":"Jueves","Vie":"Viernes","Sáb":"Sábado","Dom":"Domingo"};
 const MESK={"Enero":"01","Febrero":"02","Marzo":"03","Abril":"04","Mayo":"05","Junio":"06","Julio":"07","Agosto":"08","Septiembre":"09","Octubre":"10","Noviembre":"11","Diciembre":"12"};
 
-const T={ink:"#1a1a1a",orange:"#F57C00",amber:"#FFC107",red:"#D32F2F",green:"#E39A1C",blue:"#94908a",purple:"#9c6b3f",grid:"#eceae7",muted:"#6f6f6a"};
-const CC=[T.orange,T.ink,T.amber,T.red,"#C05621","#94908a","#9c6b3f","#E39A1C","#5d4037","#d3d0ca","#7a3b0a","#f0cf7a"];
-if(typeof Chart!=="undefined"){Chart.defaults.font.family="Segoe UI,system-ui,sans-serif";Chart.defaults.font.size=12;Chart.defaults.color=T.muted;Chart.defaults.plugins.legend.labels.usePointStyle=true;Chart.defaults.plugins.legend.labels.boxWidth=10;Chart.defaults.plugins.tooltip.backgroundColor=T.ink;Chart.defaults.plugins.tooltip.padding=10;Chart.defaults.plugins.tooltip.cornerRadius=6;Chart.defaults.maintainAspectRatio=false;}
+const T={navy:"#14213D",navy2:"#1e2f52",gold:"#FCA311",gold2:"#facc15",amber:"#fbbf24",blue:"#1e40af",blue2:"#2563eb",blue3:"#3b82f6",red:"#dc2626",redDark:"#b91c1c",green:"#16a34a",bg:"#f8fafc",ink:"#0f172a",muted:"#64748b",muted2:"#94a3b8",teal:"#0891b2",purple:"#7c3aed",grid:"#e2e8f0",orange:"#FCA311"};
+const CC=[T.gold,T.navy,T.blue,T.red,T.green,T.purple,T.teal,T.amber,T.blue2,T.navy2,T.gold2,T.muted];
+if(typeof Chart!=="undefined"){Chart.defaults.font.family="Segoe UI,system-ui,sans-serif";Chart.defaults.font.size=12;Chart.defaults.color=T.muted;Chart.defaults.plugins.legend.labels.usePointStyle=true;Chart.defaults.plugins.legend.labels.boxWidth=10;Chart.defaults.plugins.tooltip.backgroundColor=T.navy;Chart.defaults.plugins.tooltip.borderColor=T.gold;Chart.defaults.plugins.tooltip.borderWidth=1;Chart.defaults.plugins.tooltip.titleColor="#ffffff";Chart.defaults.plugins.tooltip.bodyColor=T.gold2;Chart.defaults.plugins.tooltip.padding=10;Chart.defaults.plugins.tooltip.cornerRadius=6;Chart.defaults.maintainAspectRatio=false;}
 const AG={grid:{color:T.grid,drawTicks:false},border:{display:false}};
 const AN={grid:{display:false},border:{display:false}};
 const charts={};
@@ -209,10 +209,10 @@ function renderFicha(root,nombre){
   const idb=PEOPLE[nombre]||p;
   let h=`<div class="fichahero"><div class="av">${initials(nombre)}</div><div><h3>${esc(nombre)}</h3><div class="fc">${esc(p.cargo)} <span class="cd-badge">${esc(idb.cdId || '—')}</span></div></div></div>`;
   h+=`<div class="fstats">
-    <div class="fstat"><b style="color:#D32F2F">${p.inas}</b><span>Inasistencias</span></div>
-    <div class="fstat"><b style="color:#F57C00">${fmt1(p.jornada)}</b><span>Jornada h/día</span></div>
-    <div class="fstat"><b style="color:#111">${fmt1(pct(p.incon,p.marcTot))}%</b><span>Marca incorrecta</span></div>
-    <div class="fstat"><b style="color:#E39A1C">${p.descansos}</b><span>Descansos</span></div></div>`;
+    <div class="fstat"><b style="color:var(--red)">${p.inas}</b><span>Inasistencias</span></div>
+    <div class="fstat"><b style="color:var(--gold)">${fmt1(p.jornada)}</b><span>Jornada h/día</span></div>
+    <div class="fstat"><b style="color:var(--ink)">${fmt1(pct(p.incon,p.marcTot))}%</b><span>Marca incorrecta</span></div>
+    <div class="fstat"><b style="color:var(--green)">${p.descansos}</b><span>Descansos</span></div></div>`;
   h+=`<div class="fsec"><h4>Asistencia</h4>
     <div class="kv"><span>Asistencias</span><b>${fmt(p.asist)}</b></div>
     <div class="kv"><span>Inasistencias</span><b>${p.inas}</b></div>
@@ -281,9 +281,9 @@ function bloqueDia(nombre){
     out+=`<div class="kv"><span>Entrada ${DOWL[new Date(DAYS[di]+"T00:00:00").getDay()]}</span><b>${hhmm(e)}</b></div>`;
     if(s!==null) out+=`<div class="kv"><span>Salida ${DOWL[new Date(DAYS[di]+"T00:00:00").getDay()]}</span><b>${hhmm(s)}</b></div>`;
     else out+=`<div class="kv"><span>Salida</span><b style="color:var(--muted2)">turno sin cerrar</b></div>`;
-    const col=desc<10?"#D32F2F":"#2E7D32", et=desc<10?"no efectivo":"efectivo";
+    const col=desc<10?T.red:T.green, et=desc<10?"no efectivo":"efectivo";
     out+= desc>24
-      ? `<div class="kv"><span>Descanso previo</span><b style="color:#2E7D32">descansó el día anterior</b></div>`
+      ? `<div class="kv"><span>Descanso previo</span><b style="color:var(--green)">descansó el día anterior</b></div>`
       : `<div class="kv"><span>Descansó</span><b style="color:${col}">${dur(desc)} · ${et}</b></div>`;
   }else{
     out+=`<div class="kv"><span>Entrada</span><b>${hhmm(e)}</b></div>`;
@@ -344,37 +344,81 @@ function inRG(di){return !RG||(di>=RG.a&&di<=RG.b);}
 function rangeDayIdx(){const o=[];for(let i=0;i<DAYS.length;i++) if(inRG(i)) o.push(i); return o;}
 let CG=""; // cargo seleccionado ("" = todos)
 function inCG(pi){return !CG||PRS[pi].c===CG;}
-let CD_FILTER=""; // CD seleccionado ("" = Regional Andes / todos)
-// Catálogo de CD data-driven: se arma desde los cdId presentes en los datos.
-// Agregar/quitar un CD en el pipeline no requiere tocar esta lista.
+let REG_FILTER=""; // "" = Nacional (Todas)
+let CD_FILTER=""; // CD seleccionado ("" = Todos)
+const REGIONAL_META={
+  ANDES:{id:'ANDES',label:'Regional Andes',color:'#FCA311'},
+  NORTE:{id:'NORTE',label:'Regional Norte',color:'#2563eb'},
+  CENTRO:{id:'CENTRO',label:'Regional Centro',color:'#16a34a'},
+  SUR:{id:'SUR',label:'Regional Sur',color:'#7c3aed'},
+};
 const CD_META={
-  ITAGUI:{label:'CD Itagüí',color:'#F57C00'},
-  ARMENIA:{label:'CD Armenia',color:'#2E7D32'},
-  MANIZALES:{label:'CD Manizales',color:'#0288D1'},
-  FORJANDES:{label:'CD Forjandes',color:'#3949AB'},
-  OL_PEREIRA:{label:'OL Pereira',color:'#E64A19'},
-  UC_PEREIRA:{label:'UC Pereira',color:'#FB8C00'},
-  OL_GIRARDOTA:{label:'OL Girardota',color:'#7B1FA2'},
-  UC_GIRARDOTA:{label:'UC Girardota',color:'#5E35B1'},
-  MED_ARANJUEZ:{label:'CD Med Aranjuez',color:'#C2185B'},
-  MED_ENVIGADO:{label:'CD Med Envigado',color:'#00796B'},
+  // ANDES
+  ITAGUI:{label:'CD Itagüí',color:'#FCA311',region:'ANDES'},
+  OL_ITAGUI:{label:'OL Itagüí',color:'#0891b2',region:'ANDES'},
+  ARMENIA:{label:'CD Armenia',color:'#16a34a',region:'ANDES'},
+  OL_ARMENIA:{label:'OL Armenia',color:'#0891b2',region:'ANDES'},
+  FORJANDES:{label:'CD Forjandes',color:'#1e40af',region:'ANDES'},
+  OL_FORJANDES:{label:'OL Forjandes',color:'#0891b2',region:'ANDES'},
+  MANIZALES:{label:'CD Manizales',color:'#2563eb',region:'ANDES'},
+  OL_MANIZALES:{label:'OL Manizales',color:'#0891b2',region:'ANDES'},
+  UC_PEREIRA:{label:'UC Pereira',color:'#fbbf24',region:'ANDES'},
+  OL_PEREIRA:{label:'OL Pereira',color:'#0891b2',region:'ANDES'},
+  UC_GIRARDOTA:{label:'UC Girardota',color:'#7c3aed',region:'ANDES'},
+  OL_GIRARDOTA:{label:'OL Girardota',color:'#0891b2',region:'ANDES'},
+  MED_ARANJUEZ:{label:'CD Med Aranjuez',color:'#dc2626',region:'ANDES'},
+  MED_ENVIGADO:{label:'CD Med Envigado',color:'#14213D',region:'ANDES'},
+
+  // NORTE
+  SANTA_MARTA:{label:'CD Santa Marta',color:'#2563eb',region:'NORTE'},
+  OL_SANTA_MARTA:{label:'OL Santa Marta',color:'#0891b2',region:'NORTE'},
+  ARENOSA:{label:'CD Arenosa',color:'#3b82f6',region:'NORTE'},
+  OL_ARENOSA:{label:'OL Arenosa',color:'#0891b2',region:'NORTE'},
+  CUCUTA:{label:'CD Cúcuta',color:'#1e40af',region:'NORTE'},
+  OL_CUCUTA:{label:'OL Cúcuta',color:'#0891b2',region:'NORTE'},
+
+  // CENTRO
+  AUTOSUR:{label:'CD Autosur',color:'#16a34a',region:'CENTRO'},
+  OL_AUTOSUR:{label:'OL Autosur',color:'#0891b2',region:'CENTRO'},
+  SIBERIA:{label:'CD Siberia',color:'#15803d',region:'CENTRO'},
+  OL_SIBERIA:{label:'OL Siberia',color:'#0891b2',region:'CENTRO'},
+  SIBATE:{label:'CD Sibaté',color:'#22c55e',region:'CENTRO'},
+  OL_SIBATE:{label:'OL Sibaté',color:'#0891b2',region:'CENTRO'},
+
+  // SUR
+  UC_YUMBO:{label:'UC Yumbo',color:'#7c3aed',region:'SUR'},
+  OL_YUMBO:{label:'OL Yumbo',color:'#0891b2',region:'SUR'},
+  TULUA:{label:'CD Tuluá',color:'#9333ea',region:'SUR'},
+  OL_TULUA:{label:'OL Tuluá',color:'#0891b2',region:'SUR'},
 };
 const CD_LIST=(()=>{
-  const present=[...new Set(A_PARR.map(p=>p.cdId).filter(Boolean))];
+  const present=[...new Set(A_PARR.map(p=>p.cdId||p.cd).filter(Boolean))];
   const ordered=Object.keys(CD_META).filter(id=>present.includes(id));
   const extra=present.filter(id=>!CD_META[id]);
-  return [...ordered,...extra].map(id=>({id,label:CD_META[id]?.label||id,color:CD_META[id]?.color||'#0288D1'}));
+  return [...ordered,...extra].map(id=>({id,label:CD_META[id]?.label||id,color:CD_META[id]?.color||'#0288D1',region:CD_META[id]?.region||'ANDES'}));
 })();
+function getPersonRegion(p){
+  if(!p) return null;
+  if(p.region) return p.region;
+  const cdId = p.cdId || p.cd;
+  return CD_META[cdId]?.region || null;
+}
+function inREG(pi){
+  if(!REG_FILTER) return true;
+  const p = PRS[pi] || A_PARR.find(x => x.pi === pi);
+  return getPersonRegion(p) === REG_FILTER;
+}
 function inCD(pi){return !CD_FILTER||(PRS[pi]&&(PRS[pi].cd===CD_FILTER||PRS[pi].cdId===CD_FILTER));}
 function applyRange(a,b){RG=(a==null)?null:{a:Math.min(a,b),b:Math.max(a,b)};applyScope();}
 function applyCargo(c){CG=c||"";applyScope();}
+function applyReg(reg){REG_FILTER=reg||"";CD_FILTER="";applyScope();}
 function applyCd(cd){CD_FILTER=cd||"";applyScope();}
 function applyScope(){
-  if(!RG&&!CG&&!CD_FILTER){PARR=A_PARR;EV=A_EV;K=A_K;CS=A_CS;HTD=A_HTD;INCD=A_INCD;INAD=A_INAD;DAY=A_DAY;MET=A_MET;JLD=A_JLD;DESD=A_DESD;PERMDS=PERMD;buildEvIdx();buildInconByDate();return;}
-  const f=r=>inRG(r[1])&&inCG(r[0])&&inCD(r[0]);
+  if(!RG&&!CG&&!REG_FILTER&&!CD_FILTER){PARR=A_PARR;EV=A_EV;K=A_K;CS=A_CS;HTD=A_HTD;INCD=A_INCD;INAD=A_INAD;DAY=A_DAY;MET=A_MET;JLD=A_JLD;DESD=A_DESD;PERMDS=PERMD;buildEvIdx();buildInconByDate();return;}
+  const f=r=>inRG(r[1])&&inCG(r[0])&&inREG(r[0])&&inCD(r[0]);
   HTD=A_HTD.filter(f);INCD=A_INCD.filter(f);INAD=A_INAD.filter(f);DAY=A_DAY.filter(f);MET=A_MET.filter(f);JLD=A_JLD.filter(f);DESD=A_DESD.filter(f);PERMDS=PERMD.filter(f);
   const dA=RG?DAYS[RG.a]:null,dB=RG?DAYS[RG.b]:null;
-  EV=A_EV.filter(e=>(!RG||(e.fecha>=dA&&e.fecha<=dB))&&(!CG||e.cargo===CG)&&(!CD_FILTER||(A_PARR.find(p=>p.nombre===e.nombre)?.cdId===CD_FILTER)));
+  EV=A_EV.filter(e=>(!RG||(e.fecha>=dA&&e.fecha<=dB))&&(!CG||e.cargo===CG)&&(!REG_FILTER||(getPersonRegion(A_PARR.find(p=>p.nombre===e.nombre))===REG_FILTER))&&(!CD_FILTER||(A_PARR.find(p=>p.nombre===e.nombre)?.cdId===CD_FILTER)));
   const pp={};
   const gp=pi=>pp[pi]||(pp[pi]={pi,nombre:PRS[pi].n,cargo:PRS[pi].c,asist:0,inas:0,permisos:0,descansos:0,retiroDias:0,ht:0,dias:0,jornadas14:0,atraso:0,incon:0,marcTot:0,metodo:{'Reloj Control':0,'Marca Manual':0,'App':0,'Otro':0},sinMarca:0,pausaSi:0,pausaNo:0,recTotal:0,rec:{RNO:0,RDD:0,RND:0,RDF:0,RNF:0},fechas_inas:[],meses:{},dows:{},permTipos:{}});
   DAY.forEach(([pi,di,st])=>{const o=gp(pi),s=STATE_NAMES[st];if(s==='asist')o.asist++;else if(s==='inas'){o.inas++;o.fechas_inas.push(DAYS[di]);}else if(s==='permiso')o.permisos++;else if(s==='descanso')o.descansos++;else if(s==='retiro')o.retiroDias++;});
@@ -401,8 +445,8 @@ function applyScope(){
   CS=Object.values(cg).map(g=>({...g,ht:Math.round(g.ht),jornada:g.dias?Math.round(g.ht/g.dias*100)/100:0,marc_inc_pct:g.marcTot?Math.round(g.incon/g.marcTot*1000)/10:0})).sort((a,b)=>b.asist-a.asist);
   buildEvIdx();buildInconByDate();
 }
-const JLCOL=['#d3d0ca','#b0aca4','#FFC107','#F57C00','#1a1a1a','#D32F2F'];
-const DECOL=['#D32F2F','#1a1a1a','#d3d0ca'];
+const JLCOL=['#cbd5e1','#94a3b8',T.amber,T.gold,T.navy,T.red];
+const DECOL=[T.red,T.navy,'#cbd5e1'];
 function bandFilter(stream,scope,key){return stream.filter(([pi,di,b])=>{const m=DMETA[di];
   if(scope==="mes")return m.mes===key;if(scope==="sem")return String(m.iso)===String(key);
   if(scope==="dia")return DAYS[di]===key;return true;});}
@@ -472,15 +516,20 @@ function resumen(){
   (function renderCdCards(){
     const container = $("#cd-cards-container");
     if (!container) return;
-    const cdsList = DATA.cds || CD_LIST;
+    const cdTitleEl = $("#cd-grid-title");
+    if (cdTitleEl) cdTitleEl.textContent = "🏭 Centros de Distribución · " + (REG_FILTER ? (REGIONAL_META[REG_FILTER]?.label || REG_FILTER) : "Cobertura Nacional");
+    const allCds = DATA.cds || CD_LIST;
+    const cdsList = allCds.filter(c => !REG_FILTER || c.region === REG_FILTER || CD_META[c.id]?.region === REG_FILTER);
     const cdMap = {};
     cdsList.forEach(c => cdMap[c.id] = { id: c.id, label: c.label, color: c.color, count: 0, asist: 0, inas: 0, perm: 0, ht: 0, dias: 0, incon: 0, marcTot: 0 });
-    A_PARR.forEach(p => {
+    A_PARR.filter(p => !REG_FILTER || getPersonRegion(p) === REG_FILTER).forEach(p => {
       const cid = p.cdId || '—';
-      if (!cdMap[cid]) cdMap[cid] = { id: cid, label: cid, color: '#0288D1', count: 0, asist: 0, inas: 0, perm: 0, ht: 0, dias: 0, incon: 0, marcTot: 0 };
+      if (!cdMap[cid] && (!REG_FILTER || getPersonRegion(p) === REG_FILTER)) cdMap[cid] = { id: cid, label: CD_META[cid]?.label||cid, color: CD_META[cid]?.color||'#0288D1', count: 0, asist: 0, inas: 0, perm: 0, ht: 0, dias: 0, incon: 0, marcTot: 0 };
       const m = cdMap[cid];
-      m.count++; m.asist += p.asist; m.inas += p.inas; m.perm += p.permisos;
-      m.ht += p.ht; m.dias += p.dias; m.incon += p.incon; m.marcTot += p.marcTot;
+      if (m) {
+        m.count++; m.asist += p.asist; m.inas += p.inas; m.perm += p.permisos;
+        m.ht += p.ht; m.dias += p.dias; m.incon += p.incon; m.marcTot += p.marcTot;
+      }
     });
     container.innerHTML = Object.values(cdMap).map(m => {
       const den = m.asist + m.inas + m.perm;
@@ -1054,7 +1103,7 @@ function weeksOfMonth(mes){const[a,b]=monthRangeIdx(mes);const g={},order=[];for
 function buildFilterBar(){
   const fb=$("#filterbar"),months=monthsPresent();
   const CARGOS=[...new Set(PRS.map(p=>p.c))].sort((a,b)=>a.localeCompare(b,"es"));
-  const CDS_LIST = DATA.cds || CD_LIST;
+  const ALL_CDS = DATA.cds || CD_LIST;
   let selMonth="",selWeek="",selDay="",selCargo="";
   function curRange(){
     if(selDay!=="")return[+selDay,+selDay];
@@ -1068,16 +1117,19 @@ function buildFilterBar(){
     const wk=selMonth?weeksOfMonth(selMonth):[];
     let dayIds=[];
     if(selMonth){if(selWeek!==""){const g=wk.find(x=>String(x.n)===String(selWeek));dayIds=g?g.ids:[];}else{const[a,b]=monthRangeIdx(selMonth);for(let i=a;i<=b;i++)dayIds.push(i);}}
-    const cdLabel = CD_FILTER ? (CDS_LIST.find(c=>c.id===CD_FILTER)?.label || CD_FILTER) : "Regional Andes (Todos)";
+    const availCds = ALL_CDS.filter(c => !REG_FILTER || c.region === REG_FILTER || CD_META[c.id]?.region === REG_FILTER);
+    const regLabel = REG_FILTER ? (REGIONAL_META[REG_FILTER]?.label || REG_FILTER) : "🌐 Cobertura Nacional (Todas)";
+    const cdLabel = CD_FILTER ? (ALL_CDS.find(c=>c.id===CD_FILTER)?.label || CD_FILTER) : (REG_FILTER ? "Todos los CDs (" + (REGIONAL_META[REG_FILTER]?.label || REG_FILTER) + ")" : "Todos los CDs");
     fb.innerHTML=`
       <div class="frow">
-        <div class="fsel"><span class="flab">🏭 CD / Centro</span><select id="fCd"><option value="">🌐 Regional Andes (Todos)</option>${CDS_LIST.map(c=>`<option value="${c.id}"${CD_FILTER===c.id?" selected":""}>${esc(c.label)}</option>`).join("")}</select></div>
+        <div class="fsel"><span class="flab">🌎 Regional</span><select id="fReg"><option value="">🌐 Cobertura Nacional (Todas)</option>${Object.values(REGIONAL_META).map(r=>`<option value="${r.id}"${REG_FILTER===r.id?" selected":""}>${esc(r.label)}</option>`).join("")}</select></div>
+        <div class="fsel"><span class="flab">🏭 CD / Centro</span><select id="fCd"><option value="">${REG_FILTER ? 'Todos los CDs de ' + esc(REGIONAL_META[REG_FILTER]?.label||REG_FILTER) : 'Todos los CDs (Nacional)'}</option>${availCds.map(c=>`<option value="${c.id}"${CD_FILTER===c.id?" selected":""}>${esc(c.label)}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">👤 Cargo</span><select id="fCargo"><option value="">Todos los cargos</option>${CARGOS.map(c=>`<option value="${esc(c)}"${selCargo===c?" selected":""}>${esc(c)}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">📅 Mes</span><select id="fMes"><option value="">Todos los meses</option>${months.map(m=>`<option value="${m}"${selMonth===m?" selected":""}>${m}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">🗓️ Semana</span><select id="fSem" ${selMonth?"":"disabled"}><option value="">Todas</option>${wk.map(w=>`<option value="${w.n}"${String(selWeek)===String(w.n)?" selected":""}>Semana ${w.n}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">📆 Día</span><select id="fDia" ${selMonth?"":"disabled"}><option value="">Todos</option>${dayIds.map(i=>`<option value="${i}"${String(selDay)===String(i)?" selected":""}>${fdate(DAYS[i])} · ${DMETA[i].dow}</option>`).join("")}</select></div>
         <span style="flex:1"></span>
-        <span class="fnow" id="fnow">${(cdLabel!=="Regional Andes (Todos)"?esc(cdLabel)+" · ":"")+(selCargo?esc(selCargo)+" · ":"")+statusTxt()}</span>
+        <span class="fnow" id="fnow">${(REG_FILTER ? esc(regLabel) + " · " : "") + (CD_FILTER ? esc(cdLabel) + " · " : "") + (selCargo ? esc(selCargo) + " · " : "") + statusTxt()}</span>
       </div>
       <div class="frow sub">
         <span class="flab">Rango exacto</span>
@@ -1087,13 +1139,14 @@ function buildFilterBar(){
         <button class="fbtn" id="fApply">Aplicar rango</button>
         <button class="fbtn ghost" id="fClear">Ver todo</button>
       </div>`;
+    $("#fReg").onchange=e=>{applyReg(e.target.value);refreshAll();draw();};
     $("#fCd").onchange=e=>{applyCd(e.target.value);refreshAll();draw();};
     $("#fCargo").onchange=e=>{selCargo=e.target.value;applyCargo(selCargo);refreshAll();draw();};
     $("#fMes").onchange=e=>{selMonth=e.target.value;selWeek="";selDay="";apply();};
     $("#fSem").onchange=e=>{selWeek=e.target.value;selDay="";apply();};
     $("#fDia").onchange=e=>{selDay=e.target.value;apply();};
     $("#fApply").onclick=()=>{const d=$("#fDesde").value,h=$("#fHasta").value;if(!d||!h){return;}const a=DIDX[d],b=DIDX[h];if(a==null||b==null){$("#fnow").textContent="Fechas sin datos";return;}selMonth="";selWeek="";selDay="";applyRange(a,b);refreshAll();draw();$("#fnow").textContent=fdate(DAYS[Math.min(a,b)])+" → "+fdate(DAYS[Math.max(a,b)]);};
-    $("#fClear").onclick=()=>{selMonth="";selWeek="";selDay="";selCargo="";CG="";applyCd("");applyRange(null);refreshAll();draw();};
+    $("#fClear").onclick=()=>{selMonth="";selWeek="";selDay="";selCargo="";CG="";applyReg("");applyCd("");applyRange(null);refreshAll();draw();};
   }
   draw();
 }

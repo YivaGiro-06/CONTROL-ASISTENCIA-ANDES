@@ -8,7 +8,7 @@ import {
   normalizeText, normalizeCedula, parseFecha, parseHoras, periodoDe, validarNombre,
 } from './lib.js';
 import {
-  grupoIncluido, resolveGrupo, resolveTipoPermiso, esRetiro,
+  grupoIncluido, resolveGrupo, resolveRegion, resolveTipoPermiso, esRetiro,
   idxEstado, idxMetodo, catalogosExportables,
 } from './entidades.js';
 import { festivosDeAnios } from './festivos.js';
@@ -318,13 +318,17 @@ function construirYEscribir() {
   for (const [k, g] of M.ga) {
     const f = k.split('|')[1];
     if (f > corte) continue;
-    estado.set(k, clasificar({ ga: g, esFestivo: FESTIVOS.has(f), esDomingo: DOM.has(f), enAusencias: M.ausencias.has(k) }));
+    let st = clasificar({ ga: g, esFestivo: FESTIVOS.has(f), esDomingo: DOM.has(f), enAusencias: M.ausencias.has(k) });
+    if (f === corte && st === 'inas') st = 'noplan'; // El día de actualización (corte) no cuenta inasistencias
+    estado.set(k, st);
   }
   let huerfanas = 0;
   for (const k of M.ausencias) {
     const [c, f] = k.split('|');
     if (estado.has(k) || f > corte || !M.personas.has(Number(c))) continue;
-    estado.set(k, FESTIVOS.has(f) ? 'descanso' : 'inas'); huerfanas++;
+    let st = FESTIVOS.has(f) ? 'descanso' : 'inas';
+    if (f === corte && st === 'inas') st = 'noplan'; // El día de actualización (corte) no cuenta inasistencias
+    estado.set(k, st); huerfanas++;
   }
   if (huerfanas) console.log(`      ${huerfanas} ausencias sin fila en el GA, agregadas`);
 
@@ -366,7 +370,7 @@ function construirYEscribir() {
   // ---- índices ----
   const cedsOrden = vivos.map(c => M.personas.get(c)).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
   const PI = new Map(cedsOrden.map((p, i) => [p.cedula, i]));
-  const persons = cedsOrden.map(p => ({ n: p.nombre, c: p.cargo, cd: p.cdId || 'ITAGUI', g: p.grupo || '—' }));
+  const persons = cedsOrden.map(p => ({ n: p.nombre, c: p.cargo, cd: p.cdId || 'ITAGUI', cdId: p.cdId || 'ITAGUI', region: p.region || resolveRegion(p.cdId || 'ITAGUI'), g: p.grupo || '—' }));
   const permTipoLabels = [...new Set([...M.ga.values()].map(g => g.permiso)
     .filter(t => { const r = resolveTipoPermiso(t); return r && !r.retiro && !r.noPlan; }))]
     .sort((a, b) => a.localeCompare(b, 'es'));
@@ -402,7 +406,7 @@ function construirYEscribir() {
   const REC = ['RNO','RDD','RND','RDF','RNF'];
   for (const ced of vivos) {
     const p = M.personas.get(ced);
-    P.set(ced, { nombre:p.nombre, cargo:p.cargo, id:String(ced), cdId:p?.cdId || 'ITAGUI', grupo:p?.grupo || '—', asist:0, inas:0, permisos:0, descansos:0,
+    P.set(ced, { nombre:p.nombre, cargo:p.cargo, id:String(ced), cdId:p?.cdId || 'ITAGUI', region:p?.region || resolveRegion(p?.cdId || 'ITAGUI'), grupo:p?.grupo || '—', asist:0, inas:0, permisos:0, descansos:0,
       ht:0, dias:0, jornada:0, recTotal:0, rec:Object.fromEntries(REC.map(k => [k, 0])), jornadas14:0,
       atraso:0, incon:0, marcTot:0, metodo:Object.fromEntries(metodoLabels.map(m => [m, 0])),
       marcManualPct:0, sinMarca:0, pausaSi:0, pausaNo:0, retiroDias:0,
@@ -588,7 +592,7 @@ function construirYEscribir() {
   const periodo = por_mes.length ? `${por_mes[0].mes} – ${por_mes.at(-1).mes} ${corte.slice(0, 4)}` : '';
   escribirJSON('festivos.json', { generado:new Date().toISOString(), anios, festivos:listaFestivos });
   escribirJSON('agregados.json', {
-    meta:{ periodo, dias:days.length, cd:'Regional Andes' }, kpi, persons, days, daymeta, isolbl,
+    meta:{ periodo, dias:days.length, cd:'Cobertura Nacional (Andes, Norte, Centro, Sur)' }, kpi, persons, days, daymeta, isolbl,
     stateLabels, metodoLabels, permTipoLabels, jlBands:BANDAS_JORNADA, descBands:BANDAS_DESCANSO,
     people:Object.fromEntries([...P.values()].map(p => [p.nombre, p])),
     por_mes, por_dia, por_dow, cargo_stats, cd_stats, permisos_breakdown, metodo_breakdown, recargos_breakdown,
@@ -647,7 +651,7 @@ function hhmmISO(m) {
 }
 
 // ---------- main ----------
-console.log('=== Control de Asistencia · CD Itagüí T2 ===');
+console.log('=== Control de Asistencia · Cobertura Nacional ===');
 procesarGA();
 procesarAusencias();
 procesarPunch();

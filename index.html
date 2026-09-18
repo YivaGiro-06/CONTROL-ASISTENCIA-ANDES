@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control de Asistencia · Regional Andes</title>
+<title>Control de Asistencia · Cobertura Nacional</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
@@ -14,8 +14,8 @@
     <div class="head__top">
       <div class="head__icon">📋</div>
       <div class="head__txt">
-        <h1>Control de Asistencia · Regional Andes</h1>
-        <div class="head__sub"><b id="hdPeople">— colaboradores</b><span class="badge" id="hdUpd"></span><span>GeoVictoria · Regional Andes · ABI</span></div>
+        <h1>Control de Asistencia · Cobertura Nacional</h1>
+        <div class="head__sub"><b id="hdPeople">— colaboradores</b><span class="badge" id="hdUpd"></span><span>GeoVictoria · Cobertura Nacional (Andes, Norte, Centro, Sur) · ABI</span></div>
       </div>
       <div class="head__search">
         <label>🔍 Buscar colaborador</label>
@@ -49,7 +49,7 @@
         <div class="cv cv--wide"><canvas id="c_trend_resumen"></canvas></div></div>
     </div>
     <div class="grid g1" id="cd-comparison-grid">
-      <div class="panel"><div class="panel__h"><div class="l"><h2>🏭 Centros de Distribución · Regional Andes</h2></div><span class="hint">click en un CD para filtrar ›</span></div><p class="panel__sub">Dotación, ausentismo %, marcaciones correctas % y jornada promedio</p><div id="cd-cards-container" class="cd-grid"></div></div>
+      <div class="panel"><div class="panel__h"><div class="l"><h2 id="cd-grid-title">🏭 Centros de Distribución · Cobertura Nacional</h2></div><span class="hint">click en un CD para filtrar ›</span></div><p class="panel__sub">Dotación, ausentismo %, marcaciones correctas % y jornada promedio por CD y Operadores Logísticos (OL)</p><div id="cd-cards-container" class="cd-grid"></div></div>
     </div>
     <div class="grid g2">
       <div class="panel"><div class="panel__h"><div class="l"><h2>Hallazgos automáticos</h2></div></div><p class="panel__sub">Generados a partir de los datos</p><div class="ins" id="i-resumen"></div></div>
@@ -203,7 +203,7 @@
     </div>
   </div>
 
-  <p class="foot">CD Itagüí T2 · Operación ABI · Ene–Jul 2026 · Construido desde GeoVictoria (marcaciones, inconsistencias), Gestión de Asistencia y Permisos · <b id="ftPeople">—</b> colaboradores · todo el detalle es clickeable hasta la ficha de cada persona</p>
+  <p class="foot">Operación ABI · Cobertura Nacional (Andes, Norte, Centro, Sur) · Construido desde GeoVictoria (marcaciones, inconsistencias), Gestión de Asistencia y Permisos · <b id="ftPeople">—</b> colaboradores · todo el detalle es clickeable hasta la ficha de cada persona</p>
 </div>
 
 <div class="drill-ov" id="drillOv"></div>
