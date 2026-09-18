@@ -340,7 +340,16 @@ let JLD=A_JLD, DESD=A_DESD, PERMDS=PERMD;
 /* ===================== FILTRO GLOBAL DE PERIODO ===================== */
 const DIDX={}; DAYS.forEach((f,i)=>DIDX[f]=i);
 let RG=null; // {a,b} índices de día inclusivos, o null=todo
-function inRG(di){return !RG||(di>=RG.a&&di<=RG.b);}
+let MONTH_FILTER=[]; // meses seleccionados ([] = todos)
+let WEEK_FILTER=[]; // semanas seleccionadas ([] = todas)
+let DAY_FILTER=[]; // días seleccionados ([] = todos)
+function inRG(di){
+  if(RG && (di < RG.a || di > RG.b)) return false;
+  if(MONTH_FILTER.length && !MONTH_FILTER.includes(DMETA[di].mes)) return false;
+  if(WEEK_FILTER.length && !WEEK_FILTER.includes(String(DMETA[di].iso))) return false;
+  if(DAY_FILTER.length && !DAY_FILTER.includes(di) && !DAY_FILTER.includes(String(di))) return false;
+  return true;
+}
 function rangeDayIdx(){const o=[];for(let i=0;i<DAYS.length;i++) if(inRG(i)) o.push(i); return o;}
 let CG=[]; // cargos seleccionados ([] = todos)
 function inCG(pi){return !CG||!CG.length||CG.includes(PRS[pi].c);}
@@ -382,7 +391,7 @@ const CD_META={
   OL_AUTOSUR:{label:'OL Autosur',color:'#0891b2',region:'CENTRO'},
   SIBERIA:{label:'CD Siberia',color:'#15803d',region:'CENTRO'},
   OL_SIBERIA:{label:'OL Siberia',color:'#0891b2',region:'CENTRO'},
-  SIBATE:{label:'CD Sibaté',color:'#22c55e',region:'CENTRO'},
+  SIBATE:{label:'CD Sibate',color:'#22c55e',region:'CENTRO'},
   OL_SIBATE:{label:'OL Sibaté',color:'#0891b2',region:'CENTRO'},
 
   // SUR
@@ -416,16 +425,28 @@ function applyRange(a,b){RG=(a==null)?null:{a:Math.min(a,b),b:Math.max(a,b)};app
 function applyCargo(c){CG=Array.isArray(c)?c:(c?[c]:[]);applyScope();}
 function applyReg(reg){REG_FILTER=Array.isArray(reg)?reg:(reg?[reg]:[]);CD_FILTER=[];applyScope();}
 function applyCd(cd){CD_FILTER=Array.isArray(cd)?cd:(cd?[cd]:[]);applyScope();}
+function applyMonth(m){MONTH_FILTER=Array.isArray(m)?m:(m?[m]:[]);WEEK_FILTER=[];DAY_FILTER=[];applyScope();}
+function applyWeek(w){WEEK_FILTER=Array.isArray(w)?w:(w?[w]:[]);DAY_FILTER=[];applyScope();}
+function applyDay(d){DAY_FILTER=Array.isArray(d)?d.map(Number):(d?[+d]:[]);applyScope();}
 function applyScope(){
   const hasRG = !!RG;
   const hasCG = Array.isArray(CG) && CG.length > 0;
   const hasREG = Array.isArray(REG_FILTER) && REG_FILTER.length > 0;
   const hasCD = Array.isArray(CD_FILTER) && CD_FILTER.length > 0;
-  if(!hasRG && !hasCG && !hasREG && !hasCD){PARR=A_PARR;EV=A_EV;K=A_K;CS=A_CS;HTD=A_HTD;INCD=A_INCD;INAD=A_INAD;DAY=A_DAY;MET=A_MET;JLD=A_JLD;DESD=A_DESD;PERMDS=PERMD;buildEvIdx();buildInconByDate();return;}
+  const hasM = Array.isArray(MONTH_FILTER) && MONTH_FILTER.length > 0;
+  const hasW = Array.isArray(WEEK_FILTER) && WEEK_FILTER.length > 0;
+  const hasD = Array.isArray(DAY_FILTER) && DAY_FILTER.length > 0;
+  if(!hasRG && !hasCG && !hasREG && !hasCD && !hasM && !hasW && !hasD){PARR=A_PARR;EV=A_EV;K=A_K;CS=A_CS;HTD=A_HTD;INCD=A_INCD;INAD=A_INAD;DAY=A_DAY;MET=A_MET;JLD=A_JLD;DESD=A_DESD;PERMDS=PERMD;buildEvIdx();buildInconByDate();return;}
   const f=r=>inRG(r[1])&&inCG(r[0])&&inREG(r[0])&&inCD(r[0]);
   HTD=A_HTD.filter(f);INCD=A_INCD.filter(f);INAD=A_INAD.filter(f);DAY=A_DAY.filter(f);MET=A_MET.filter(f);JLD=A_JLD.filter(f);DESD=A_DESD.filter(f);PERMDS=PERMD.filter(f);
   const dA=RG?DAYS[RG.a]:null,dB=RG?DAYS[RG.b]:null;
-  EV=A_EV.filter(e=>(!RG||(e.fecha>=dA&&e.fecha<=dB))&&(!hasCG||CG.includes(e.cargo))&&(!hasREG||REG_FILTER.includes(getPersonRegion(A_PARR.find(p=>p.nombre===e.nombre))))&&(!hasCD||CD_FILTER.includes(A_PARR.find(p=>p.nombre===e.nombre)?.cdId)));
+  EV=A_EV.filter(e=>{
+    const di=DIDX[e.fecha];
+    return (di!=null?inRG(di):(!RG||(e.fecha>=dA&&e.fecha<=dB)))
+      && (!hasCG||CG.includes(e.cargo))
+      && (!hasREG||REG_FILTER.includes(getPersonRegion(A_PARR.find(p=>p.nombre===e.nombre))))
+      && (!hasCD||CD_FILTER.includes(A_PARR.find(p=>p.nombre===e.nombre)?.cdId));
+  });
   const pp={};
   const gp=pi=>pp[pi]||(pp[pi]={pi,nombre:PRS[pi].n,cargo:PRS[pi].c,asist:0,inas:0,permisos:0,descansos:0,retiroDias:0,ht:0,dias:0,jornadas14:0,atraso:0,incon:0,marcTot:0,metodo:{'Reloj Control':0,'Marca Manual':0,'App':0,'Otro':0},sinMarca:0,pausaSi:0,pausaNo:0,recTotal:0,rec:{RNO:0,RDD:0,RND:0,RDF:0,RNF:0},fechas_inas:[],meses:{},dows:{},permTipos:{}});
   DAY.forEach(([pi,di,st])=>{const o=gp(pi),s=STATE_NAMES[st];if(s==='asist')o.asist++;else if(s==='inas'){o.inas++;o.fechas_inas.push(DAYS[di]);}else if(s==='permiso')o.permisos++;else if(s==='descanso')o.descansos++;else if(s==='retiro')o.retiroDias++;});
@@ -1110,11 +1131,11 @@ function weeksOfMonth(mes){const[a,b]=monthRangeIdx(mes);const g={},order=[];for
 
 function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues, onChange }) {
   const selArr = Array.isArray(selectedValues) ? selectedValues : (selectedValues ? [selectedValues] : []);
-  const selSet = new Set(selArr);
+  const selSet = new Set(selArr.map(String));
 
   let summary = placeholder;
   if (selSet.size === 1) {
-    const found = options.find(o => String(o.val) === String([...selSet][0]));
+    const found = options.find(o => String(o.val) === [...selSet][0]);
     summary = found ? found.label : [...selSet][0];
   } else if (selSet.size > 1 && selSet.size < options.length) {
     summary = `${selSet.size} seleccionados`;
@@ -1134,12 +1155,11 @@ function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues
     <div class="msel-pop" id="msel-pop-${id}" style="display:none">
       ${options.length > 5 ? `<div class="msel-search-row"><input type="text" class="msel-search" id="msel-srch-${id}" placeholder="🔍 Buscar..." autocomplete="off"></div>` : ''}
       <div class="msel-actions">
-        <button type="button" class="msel-act-btn msel-all" id="msel-all-${id}">✓ Todos</button>
-        <button type="button" class="msel-act-btn msel-none" id="msel-none-${id}">✗ Ninguno</button>
+        <button type="button" class="msel-act-btn msel-all" id="msel-all-${id}">✓ Seleccionar todos</button>
       </div>
       <div class="msel-list" id="msel-list-${id}">
         ${options.map(opt => {
-          const isChecked = selSet.size === 0 || selSet.has(opt.val);
+          const isChecked = selSet.size === 0 || selSet.has(String(opt.val));
           return `
             <label class="msel-opt">
               <input type="checkbox" value="${esc(opt.val)}" ${isChecked ? 'checked' : ''}>
@@ -1150,6 +1170,7 @@ function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues
           `;
         }).join('')}
       </div>
+      <button type="button" class="msel-apply-btn" id="msel-apply-${id}">Aceptar</button>
     </div>
   `;
 
@@ -1158,7 +1179,7 @@ function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues
   const list = container.querySelector(`#msel-list-${id}`);
   const srch = container.querySelector(`#msel-srch-${id}`);
   const btnAll = container.querySelector(`#msel-all-${id}`);
-  const btnNone = container.querySelector(`#msel-none-${id}`);
+  const btnApply = container.querySelector(`#msel-apply-${id}`);
 
   btn.onclick = (e) => {
     e.stopPropagation();
@@ -1186,48 +1207,60 @@ function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues
     srch.oninput = () => filterItems(srch.value);
   }
 
-  function emitChange() {
-    const checked = [];
-    list.querySelectorAll("input[type='checkbox']:checked").forEach(cb => checked.push(cb.value));
-    if (checked.length === options.length) {
-      onChange([]);
-    } else {
-      onChange(checked);
-    }
-  }
-
-  list.querySelectorAll("input[type='checkbox']").forEach(cb => {
-    cb.onchange = emitChange;
-  });
-
   btnAll.onclick = () => {
     list.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = true);
-    emitChange();
   };
 
-  btnNone.onclick = () => {
-    list.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
-    emitChange();
+  function getCheckedValues() {
+    const checked = [];
+    list.querySelectorAll("input[type='checkbox']:checked").forEach(cb => checked.push(cb.value));
+    if (checked.length === 0 || checked.length === options.length) {
+      return [];
+    }
+    return checked;
+  }
+
+  btnApply.onclick = (e) => {
+    e.stopPropagation();
+    pop.style.display = "none";
+    btn.classList.remove("on");
+    const checked = getCheckedValues();
+    onChange(checked);
   };
 
   return container;
 }
 
 function buildFilterBar(){
-  const fb=$("#filterbar"),months=monthsPresent();
+  const fb=$("#filterbar"), months=monthsPresent();
   const CARGOS=[...new Set(PRS.map(p=>p.c))].sort((a,b)=>a.localeCompare(b,"es"));
   const ALL_CDS = DATA.cds || CD_LIST;
-  let selMonth="",selWeek="",selDay="";
 
-  function curRange(){
-    if(selDay!=="")return[+selDay,+selDay];
-    if(selMonth&&selWeek!==""){const wk=weeksOfMonth(selMonth).find(x=>String(x.n)===String(selWeek));if(wk)return[wk.ids[0],wk.ids[wk.ids.length-1]];}
-    if(selMonth){const[a,b]=monthRangeIdx(selMonth);return[a,b];}
-    return null;
+  function statusTxt(){
+    const parts = [];
+    if(REG_FILTER.length){
+      parts.push(REG_FILTER.length === 1 ? (REGIONAL_META[REG_FILTER[0]]?.label || REG_FILTER[0]) : `${REG_FILTER.length} regionales`);
+    }
+    if(CD_FILTER.length){
+      parts.push(CD_FILTER.length === 1 ? (ALL_CDS.find(c=>c.id===CD_FILTER[0])?.label || CD_FILTER[0]) : `${CD_FILTER.length} CDs`);
+    }
+    if(MONTH_FILTER.length){
+      parts.push(MONTH_FILTER.length === 1 ? MONTH_FILTER[0] : `${MONTH_FILTER.length} meses`);
+    }
+    if(WEEK_FILTER.length){
+      parts.push(WEEK_FILTER.length === 1 ? `Semana ${WEEK_FILTER[0]}` : `${WEEK_FILTER.length} semanas`);
+    }
+    if(DAY_FILTER.length){
+      parts.push(DAY_FILTER.length === 1 ? `${fdate(DAYS[DAY_FILTER[0]])} · ${DMETA[DAY_FILTER[0]].dow}` : `${DAY_FILTER.length} días`);
+    }
+    if(CG.length){
+      parts.push(CG.length === 1 ? CG[0] : `${CG.length} cargos`);
+    }
+    if(RG){
+      parts.push(fdate(DAYS[RG.a]) + " → " + fdate(DAYS[RG.b]));
+    }
+    return parts.length ? parts.join(" · ") : "Todo · " + DAYS.length + " días";
   }
-
-  function statusTxt(){const r=curRange();if(!r)return"Todo · "+DAYS.length+" días";if(r[0]===r[1])return fdate(DAYS[r[0]])+" · "+(DOWF[DMETA[r[0]].dow]||"");return fdate(DAYS[r[0]])+" → "+fdate(DAYS[r[1]])+" · "+(r[1]-r[0]+1)+" días";}
-  function apply(){const r=curRange();applyRange(r?r[0]:null,r?r[1]:null);refreshAll();draw();}
 
   document.addEventListener("click", () => {
     document.querySelectorAll(".msel-pop").forEach(p => p.style.display = "none");
@@ -1235,22 +1268,10 @@ function buildFilterBar(){
   });
 
   function draw(){
-    const wk=selMonth?weeksOfMonth(selMonth):[];
-    let dayIds=[];
-    if(selMonth){if(selWeek!==""){const g=wk.find(x=>String(x.n)===String(selWeek));dayIds=g?g.ids:[];}else{const[a,b]=monthRangeIdx(selMonth);for(let i=a;i<=b;i++)dayIds.push(i);}}
-
-    const availCds = ALL_CDS.filter(c => !REG_FILTER.length || REG_FILTER.includes(c.region) || REG_FILTER.includes(CD_META[c.id]?.region));
-    const regLabel = REG_FILTER.length ? (REG_FILTER.length === 1 ? (REGIONAL_META[REG_FILTER[0]]?.label || REG_FILTER[0]) : `${REG_FILTER.length} regionales`) : "";
-    const cdLabel = CD_FILTER.length ? (CD_FILTER.length === 1 ? (ALL_CDS.find(c=>c.id===CD_FILTER[0])?.label || CD_FILTER[0]) : `${CD_FILTER.length} CDs`) : "";
-    const cargoLabel = CG.length ? (CG.length === 1 ? CG[0] : `${CG.length} cargos`) : "";
-
     fb.innerHTML=`
       <div class="frow" id="frow-main">
-        <div class="fsel"><span class="flab">📅 Mes</span><select id="fMes"><option value="">Todos los meses</option>${months.map(m=>`<option value="${m}"${selMonth===m?" selected":""}>${m}</option>`).join("")}</select></div>
-        <div class="fsel"><span class="flab">🗓️ Semana</span><select id="fSem" ${selMonth?"":"disabled"}><option value="">Todas</option>${wk.map(w=>`<option value="${w.n}"${String(selWeek)===String(w.n)?" selected":""}>Semana ${w.n}</option>`).join("")}</select></div>
-        <div class="fsel"><span class="flab">📆 Día</span><select id="fDia" ${selMonth?"":"disabled"}><option value="">Todos</option>${dayIds.map(i=>`<option value="${i}"${String(selDay)===String(i)?" selected":""}>${fdate(DAYS[i])} · ${DMETA[i].dow}</option>`).join("")}</select></div>
         <span style="flex:1"></span>
-        <span class="fnow" id="fnow">${[regLabel, cdLabel, cargoLabel, statusTxt()].filter(Boolean).join(" · ")}</span>
+        <span class="fnow" id="fnow">${statusTxt()}</span>
       </div>
       <div class="frow sub">
         <span class="flab">Rango exacto</span>
@@ -1262,8 +1283,9 @@ function buildFilterBar(){
       </div>`;
 
     const frowMain = fb.querySelector("#frow-main");
+    const fnowEl = frowMain.querySelector("#fnow");
 
-    // 1. Regional Multi-Select
+    // 1. Regional
     const regOptions = Object.values(REGIONAL_META).map(r => ({
       val: r.id,
       label: r.label,
@@ -1278,7 +1300,8 @@ function buildFilterBar(){
       onChange: (vals) => { applyReg(vals); refreshAll(); draw(); }
     });
 
-    // 2. CD Multi-Select
+    // 2. CD / Centro
+    const availCds = ALL_CDS.filter(c => !REG_FILTER.length || REG_FILTER.includes(c.region) || REG_FILTER.includes(CD_META[c.id]?.region));
     const cdOptions = availCds.map(c => ({
       val: c.id,
       label: c.label,
@@ -1293,7 +1316,60 @@ function buildFilterBar(){
       onChange: (vals) => { applyCd(vals); refreshAll(); draw(); }
     });
 
-    // 3. Cargo Multi-Select
+    // 3. Mes
+    const monthOptions = monthsPresent().map(m => ({
+      val: m,
+      label: m
+    }));
+    const monthWidget = renderMultiSelect({
+      id: "fMes",
+      labelHtml: "📅 Mes",
+      placeholder: "Todos los meses",
+      options: monthOptions,
+      selectedValues: MONTH_FILTER,
+      onChange: (vals) => { applyMonth(vals); refreshAll(); draw(); }
+    });
+
+    // 4. Semana
+    let availWeeks = weekKeys();
+    if (MONTH_FILTER.length > 0) {
+      const mDays = DAYS.map((_, i) => i).filter(di => MONTH_FILTER.includes(DMETA[di].mes));
+      availWeeks = [...new Set(mDays.map(di => String(DMETA[di].iso)))].sort((a,b) => +a - +b);
+    }
+    const weekOptions = availWeeks.map(w => ({
+      val: w,
+      label: ISOLBL[w] ? `Semana ${w} (${ISOLBL[w]})` : `Semana ${w}`
+    }));
+    const weekWidget = renderMultiSelect({
+      id: "fSem",
+      labelHtml: "🗓️ Semana",
+      placeholder: "Todas las semanas",
+      options: weekOptions,
+      selectedValues: WEEK_FILTER,
+      onChange: (vals) => { applyWeek(vals); refreshAll(); draw(); }
+    });
+
+    // 5. Día
+    let availDays = DAYS.map((_, i) => i);
+    if (WEEK_FILTER.length > 0) {
+      availDays = availDays.filter(di => (!MONTH_FILTER.length || MONTH_FILTER.includes(DMETA[di].mes)) && WEEK_FILTER.includes(String(DMETA[di].iso)));
+    } else if (MONTH_FILTER.length > 0) {
+      availDays = availDays.filter(di => MONTH_FILTER.includes(DMETA[di].mes));
+    }
+    const dayOptions = availDays.map(di => ({
+      val: String(di),
+      label: `${fdate(DAYS[di])} · ${DMETA[di].dow} (${DMETA[di].mes})`
+    }));
+    const dayWidget = renderMultiSelect({
+      id: "fDia",
+      labelHtml: "📆 Día",
+      placeholder: "Todos los días",
+      options: dayOptions,
+      selectedValues: DAY_FILTER.map(String),
+      onChange: (vals) => { applyDay(vals); refreshAll(); draw(); }
+    });
+
+    // 6. Cargo
     const cargoOptions = CARGOS.map(c => ({
       val: c,
       label: c,
@@ -1308,17 +1384,30 @@ function buildFilterBar(){
       onChange: (vals) => { applyCargo(vals); refreshAll(); draw(); }
     });
 
-    const mesEl = frowMain.querySelector("#fMes").parentElement;
-    frowMain.insertBefore(regWidget, mesEl);
-    frowMain.insertBefore(cdWidget, mesEl);
-    const fnowEl = frowMain.querySelector("#fnow");
-    frowMain.insertBefore(cargoWidget, fnowEl);
+    frowMain.insertBefore(regWidget, fnowEl.previousElementSibling || fnowEl);
+    frowMain.insertBefore(cdWidget, fnowEl.previousElementSibling || fnowEl);
+    frowMain.insertBefore(monthWidget, fnowEl.previousElementSibling || fnowEl);
+    frowMain.insertBefore(weekWidget, fnowEl.previousElementSibling || fnowEl);
+    frowMain.insertBefore(dayWidget, fnowEl.previousElementSibling || fnowEl);
+    frowMain.insertBefore(cargoWidget, fnowEl.previousElementSibling || fnowEl);
 
-    $("#fMes").onchange=e=>{selMonth=e.target.value;selWeek="";selDay="";apply();};
-    $("#fSem").onchange=e=>{selWeek=e.target.value;selDay="";apply();};
-    $("#fDia").onchange=e=>{selDay=e.target.value;apply();};
-    $("#fApply").onclick=()=>{const d=$("#fDesde").value,h=$("#fHasta").value;if(!d||!h){return;}const a=DIDX[d],b=DIDX[h];if(a==null||b==null){$("#fnow").textContent="Fechas sin datos";return;}selMonth="";selWeek="";selDay="";applyRange(a,b);refreshAll();draw();$("#fnow").textContent=fdate(DAYS[Math.min(a,b)])+" → "+fdate(DAYS[Math.max(a,b)]);};
-    $("#fClear").onclick=()=>{selMonth="";selWeek="";selDay="";CG=[];REG_FILTER=[];CD_FILTER=[];applyRange(null);refreshAll();draw();};
+    $("#fApply").onclick=()=>{
+      const d=$("#fDesde").value,h=$("#fHasta").value;
+      if(!d||!h){return;}
+      const a=DIDX[d],b=DIDX[h];
+      if(a==null||b==null){$("#fnow").textContent="Fechas sin datos";return;}
+      MONTH_FILTER=[]; WEEK_FILTER=[]; DAY_FILTER=[];
+      applyRange(a,b);
+      refreshAll();
+      draw();
+      $("#fnow").textContent=fdate(DAYS[Math.min(a,b)])+" → "+fdate(DAYS[Math.max(a,b)]);
+    };
+    $("#fClear").onclick=()=>{
+      MONTH_FILTER=[]; WEEK_FILTER=[]; DAY_FILTER=[]; CG=[]; REG_FILTER=[]; CD_FILTER=[];
+      applyRange(null);
+      refreshAll();
+      draw();
+    };
   }
   draw();
 }

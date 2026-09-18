@@ -346,3 +346,11 @@ body{font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-
   background: var(--gold); color: var(--navy); font-size: 11px; font-weight: 800;
   padding: 1px 6px; border-radius: 10px; margin-left: 4px; flex-shrink: 0;
 }
+.msel-apply-btn {
+  appearance: none; border: none; background: var(--gold); color: var(--navy);
+  font-family: inherit; font-size: 13px; font-weight: 800; padding: 8px 12px;
+  border-radius: 8px; cursor: pointer; text-align: center; margin-top: 4px;
+  transition: background 0.15s ease, transform 0.1s ease; width: 100%; box-sizing: border-box;
+}
+.msel-apply-btn:hover { background: var(--gold-2); transform: translateY(-1px); }
+.msel-apply-btn:active { transform: translateY(0); }
