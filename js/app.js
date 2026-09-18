@@ -1124,10 +1124,10 @@ function buildFilterBar(){
       <div class="frow">
         <div class="fsel"><span class="flab">🌎 Regional</span><select id="fReg"><option value="">🌐 Cobertura Nacional (Todas)</option>${Object.values(REGIONAL_META).map(r=>`<option value="${r.id}"${REG_FILTER===r.id?" selected":""}>${esc(r.label)}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">🏭 CD / Centro</span><select id="fCd"><option value="">${REG_FILTER ? 'Todos los CDs de ' + esc(REGIONAL_META[REG_FILTER]?.label||REG_FILTER) : 'Todos los CDs (Nacional)'}</option>${availCds.map(c=>`<option value="${c.id}"${CD_FILTER===c.id?" selected":""}>${esc(c.label)}</option>`).join("")}</select></div>
-        <div class="fsel"><span class="flab">👤 Cargo</span><select id="fCargo"><option value="">Todos los cargos</option>${CARGOS.map(c=>`<option value="${esc(c)}"${selCargo===c?" selected":""}>${esc(c)}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">📅 Mes</span><select id="fMes"><option value="">Todos los meses</option>${months.map(m=>`<option value="${m}"${selMonth===m?" selected":""}>${m}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">🗓️ Semana</span><select id="fSem" ${selMonth?"":"disabled"}><option value="">Todas</option>${wk.map(w=>`<option value="${w.n}"${String(selWeek)===String(w.n)?" selected":""}>Semana ${w.n}</option>`).join("")}</select></div>
         <div class="fsel"><span class="flab">📆 Día</span><select id="fDia" ${selMonth?"":"disabled"}><option value="">Todos</option>${dayIds.map(i=>`<option value="${i}"${String(selDay)===String(i)?" selected":""}>${fdate(DAYS[i])} · ${DMETA[i].dow}</option>`).join("")}</select></div>
+        <div class="fsel"><span class="flab">👤 Cargo</span><select id="fCargo"><option value="">Todos los cargos</option>${CARGOS.map(c=>`<option value="${esc(c)}"${selCargo===c?" selected":""}>${esc(c)}</option>`).join("")}</select></div>
         <span style="flex:1"></span>
         <span class="fnow" id="fnow">${(REG_FILTER ? esc(regLabel) + " · " : "") + (CD_FILTER ? esc(cdLabel) + " · " : "") + (selCargo ? esc(selCargo) + " · " : "") + statusTxt()}</span>
       </div>
