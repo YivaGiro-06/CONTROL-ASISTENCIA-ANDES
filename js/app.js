@@ -1208,7 +1208,9 @@ function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues
   }
 
   btnAll.onclick = () => {
-    list.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = true);
+    const checkboxes = Array.from(list.querySelectorAll("input[type='checkbox']"));
+    const allChecked = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
+    checkboxes.forEach(cb => cb.checked = !allChecked);
   };
 
   function getCheckedValues() {
