@@ -473,8 +473,8 @@ function applyScope(){
   CS=Object.values(cg).map(g=>({...g,ht:Math.round(g.ht),jornada:g.dias?Math.round(g.ht/g.dias*100)/100:0,marc_inc_pct:g.marcTot?Math.round(g.incon/g.marcTot*1000)/10:0})).sort((a,b)=>b.asist-a.asist);
   buildEvIdx();buildInconByDate();
 }
-const JLCOL=['#cbd5e1','#94a3b8',T.amber,T.gold,T.navy,T.red];
-const DECOL=[T.red,T.navy,'#cbd5e1'];
+const JLCOL=['#E2E8F0','#CBD5E1',T.cyan,T.blue2,T.amber,T.red];
+const DECOL=[T.red,T.amber,T.green];
 function bandFilter(stream,scope,key){return stream.filter(([pi,di,b])=>{const m=DMETA[di];
   if(scope==="mes")return m.mes===key;if(scope==="sem")return String(m.iso)===String(key);
   if(scope==="dia")return DAYS[di]===key;return true;});}
@@ -523,8 +523,38 @@ function kpi(o){return `<div class="kpi kpi--${o.tone} ${o.click?"click":""}" ${
 function insi(o){return `<div class="insight insight--${o.tone}"><i>${o.ic}</i><div><b>${o.t}</b><span>${o.d}</span></div></div>`;}
 function metricDrill(title,label,metric,unit,fmtv,note){return ()=>openDrill(peopleDrill({title,label,sub:DATA.meta.periodo,people:PARR,metric,unit,fmtv,note}));}
 
+function updateViewHeader(){
+  const titleEl=$("#viewHdrTitle"), subEl=$("#viewHdrSub");
+  if(!titleEl||!subEl) return;
+  let cdTxt="Cobertura Nacional";
+  if(CD_FILTER.length===1){
+    const cdObj=(DATA.cds||CD_LIST).find(c=>c.id===CD_FILTER[0])||CD_META[CD_FILTER[0]];
+    cdTxt=cdObj?(cdObj.label||cdObj):CD_FILTER[0];
+  } else if(CD_FILTER.length>1){
+    cdTxt=`${CD_FILTER.length} CDs seleccionados`;
+  } else if(REG_FILTER.length===1){
+    const regObj=REGIONAL_META[REG_FILTER[0]];
+    cdTxt=regObj?regObj.label:REG_FILTER[0];
+  } else if(REG_FILTER.length>1){
+    cdTxt=`${REG_FILTER.length} Regionales`;
+  }
+  let rangeTxtStr=DAYS.length?(fdate(DAYS[0])+" → "+fdate(DAYS[DAYS.length-1])):"todo el periodo";
+  if(RG){
+    rangeTxtStr=fdate(DAYS[RG.a])+" → "+fdate(DAYS[RG.b]);
+  } else if(MONTH_FILTER.length){
+    rangeTxtStr="Meses: "+MONTH_FILTER.join(", ");
+  } else if(WEEK_FILTER.length){
+    rangeTxtStr="Semanas: "+WEEK_FILTER.join(", ");
+  } else if(DAY_FILTER.length){
+    rangeTxtStr="Días seleccionados ("+DAY_FILTER.length+")";
+  }
+  titleEl.textContent=`Vista General · ${cdTxt}`;
+  subEl.textContent=`Resumen consolidado de asistencia · ${rangeTxtStr}`;
+}
+
 /* ===================== TAB: RESUMEN ===================== */
 function resumen(){
+  updateViewHeader();
   const hp=$("#heroPct");if(hp)hp.textContent=fmt1(K.pct_asist)+"%";
   const hs=$("#heroSub");if(hs)hs.textContent="Resumen consolidado de asistencia · "+(RG?fdate(DAYS[RG.a])+" → "+fdate(DAYS[RG.b]):"todo el periodo · "+DAYS.length+" días");
   $("#k-resumen").innerHTML=
@@ -1297,6 +1327,8 @@ function buildFilterBar(){
   });
 
   function draw(){
+    const valDesde = RG ? DAYS[RG.a] : "";
+    const valHasta = RG ? DAYS[RG.b] : "";
     fb.innerHTML=`
       <div class="frow" id="frow-main">
         <span style="flex:1"></span>
@@ -1304,9 +1336,9 @@ function buildFilterBar(){
       </div>
       <div class="frow sub">
         <span class="flab">Rango exacto</span>
-        <input type="date" class="fdate" id="fDesde" min="${DAYS[0]}" max="${DAYS[DAYS.length-1]}">
+        <input type="date" class="fdate" id="fDesde" min="${DAYS[0]}" max="${DAYS[DAYS.length-1]}" value="${valDesde}">
         <span class="dash">→</span>
-        <input type="date" class="fdate" id="fHasta" min="${DAYS[0]}" max="${DAYS[DAYS.length-1]}">
+        <input type="date" class="fdate" id="fHasta" min="${DAYS[0]}" max="${DAYS[DAYS.length-1]}" value="${valHasta}">
         <button class="fbtn" id="fApply">Aplicar rango</button>
         <button class="fbtn ghost" id="fClear">Ver todo</button>
       </div>`;
