@@ -1129,37 +1129,47 @@ function monthsPresent(){const s=[];DMETA.forEach(m=>{if(!s.includes(m.mes))s.pu
 function monthRangeIdx(mes){let a=-1,b=-1;DAYS.forEach((f,i)=>{if(DMETA[i].mes===mes){if(a<0)a=i;b=i;}});return[a,b];}
 function weeksOfMonth(mes){const[a,b]=monthRangeIdx(mes);const g={},order=[];for(let i=a;i<=b;i++){const w=DMETA[i].iso;if(!(w in g)){g[w]=[];order.push(w);}g[w].push(i);}return order.map((w,k)=>({n:k+1,ids:g[w]}));}
 
+let openMselId = null;
+
 function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues, onChange }) {
   const selArr = Array.isArray(selectedValues) ? selectedValues : (selectedValues ? [selectedValues] : []);
   const selSet = new Set(selArr.map(String));
+  const isClearedNone = selSet.has("__NONE__");
+  const allActive = (selSet.size === 0);
 
   let summary = placeholder;
-  if (selSet.size === 1) {
+  if (isClearedNone) {
+    summary = `0 seleccionados (${options.length})`;
+  } else if (allActive || selSet.size === options.length) {
+    summary = `${placeholder} (${options.length})`;
+  } else if (selSet.size === 1) {
     const found = options.find(o => String(o.val) === [...selSet][0]);
     summary = found ? found.label : [...selSet][0];
-  } else if (selSet.size > 1 && selSet.size < options.length) {
-    summary = `${selSet.size} seleccionados`;
+  } else {
+    summary = `${selSet.size} seleccionados (${options.length})`;
   }
 
   const container = document.createElement("div");
   container.className = "msel-wrap";
   container.id = `msel-wrap-${id}`;
 
+  const isOpen = (openMselId === id);
+
   container.innerHTML = `
     <span class="flab">${labelHtml}</span>
-    <button type="button" class="msel-btn${selSet.size > 0 && selSet.size < options.length ? ' on' : ''}" id="msel-btn-${id}">
+    <button type="button" class="msel-btn${(!allActive && !isClearedNone) ? ' active-filter' : ''}${isOpen ? ' on' : ''}" id="msel-btn-${id}">
       <span class="msel-txt">${esc(summary)}</span>
-      ${selSet.size > 0 && selSet.size < options.length ? `<span class="msel-badge">${selSet.size}</span>` : ''}
       <span class="msel-arrow">▼</span>
     </button>
-    <div class="msel-pop" id="msel-pop-${id}" style="display:none">
-      ${options.length > 5 ? `<div class="msel-search-row"><input type="text" class="msel-search" id="msel-srch-${id}" placeholder="🔍 Buscar..." autocomplete="off"></div>` : ''}
-      <div class="msel-actions">
-        <button type="button" class="msel-act-btn msel-all" id="msel-all-${id}">✓ Seleccionar todos</button>
+    <div class="msel-pop" id="msel-pop-${id}" style="display:${isOpen ? 'flex' : 'none'}">
+      <div class="msel-hdr">
+        <button type="button" class="msel-hdr-btn msel-all" id="msel-all-${id}">Todos</button>
+        <button type="button" class="msel-hdr-btn msel-clear" id="msel-clear-${id}">Limpiar</button>
       </div>
+      ${options.length > 7 ? `<div class="msel-search-row"><input type="text" class="msel-search" id="msel-srch-${id}" placeholder="🔍 Buscar..." autocomplete="off"></div>` : ''}
       <div class="msel-list" id="msel-list-${id}">
         ${options.map(opt => {
-          const isChecked = selSet.size === 0 || selSet.has(String(opt.val));
+          const isChecked = !isClearedNone && (allActive || selSet.has(String(opt.val)));
           return `
             <label class="msel-opt">
               <input type="checkbox" value="${esc(opt.val)}" ${isChecked ? 'checked' : ''}>
@@ -1170,7 +1180,6 @@ function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues
           `;
         }).join('')}
       </div>
-      <button type="button" class="msel-apply-btn" id="msel-apply-${id}">Aceptar</button>
     </div>
   `;
 
@@ -1179,17 +1188,20 @@ function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues
   const list = container.querySelector(`#msel-list-${id}`);
   const srch = container.querySelector(`#msel-srch-${id}`);
   const btnAll = container.querySelector(`#msel-all-${id}`);
-  const btnApply = container.querySelector(`#msel-apply-${id}`);
+  const btnClear = container.querySelector(`#msel-clear-${id}`);
 
   btn.onclick = (e) => {
     e.stopPropagation();
-    const isOpen = pop.style.display !== "none";
+    const currentlyOpen = pop.style.display !== "none";
     document.querySelectorAll(".msel-pop").forEach(p => p.style.display = "none");
     document.querySelectorAll(".msel-btn").forEach(b => b.classList.remove("on"));
-    if (!isOpen) {
+    if (!currentlyOpen) {
       pop.style.display = "flex";
       btn.classList.add("on");
+      openMselId = id;
       if (srch) { srch.value = ""; filterItems(""); srch.focus(); }
+    } else {
+      openMselId = null;
     }
   };
 
@@ -1207,27 +1219,41 @@ function renderMultiSelect({ id, labelHtml, placeholder, options, selectedValues
     srch.oninput = () => filterItems(srch.value);
   }
 
-  btnAll.onclick = () => {
-    const checkboxes = Array.from(list.querySelectorAll("input[type='checkbox']"));
-    const allChecked = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
-    checkboxes.forEach(cb => cb.checked = !allChecked);
-  };
-
   function getCheckedValues() {
     const checked = [];
     list.querySelectorAll("input[type='checkbox']:checked").forEach(cb => checked.push(cb.value));
-    if (checked.length === 0 || checked.length === options.length) {
+    if (checked.length === 0) {
+      return ["__NONE__"];
+    }
+    if (checked.length === options.length) {
       return [];
     }
     return checked;
   }
 
-  btnApply.onclick = (e) => {
-    e.stopPropagation();
-    pop.style.display = "none";
-    btn.classList.remove("on");
+  function handleSelectionChange() {
+    openMselId = id;
     const checked = getCheckedValues();
     onChange(checked);
+  }
+
+  list.querySelectorAll("input[type='checkbox']").forEach(cb => {
+    cb.onchange = () => handleSelectionChange();
+  });
+
+  btnAll.onclick = (e) => {
+    e.stopPropagation();
+    const checkboxes = list.querySelectorAll("input[type='checkbox']");
+    checkboxes.forEach(cb => cb.checked = true);
+    handleSelectionChange();
+  };
+
+  btnClear.onclick = (e) => {
+    e.stopPropagation();
+    const checkboxes = list.querySelectorAll("input[type='checkbox']");
+    checkboxes.forEach(cb => cb.checked = false);
+    openMselId = id;
+    onChange(["__NONE__"]);
   };
 
   return container;
@@ -1241,22 +1267,22 @@ function buildFilterBar(){
   function statusTxt(){
     const parts = [];
     if(REG_FILTER.length){
-      parts.push(REG_FILTER.length === 1 ? (REGIONAL_META[REG_FILTER[0]]?.label || REG_FILTER[0]) : `${REG_FILTER.length} regionales`);
+      parts.push(REG_FILTER.includes("__NONE__") ? "0 regionales" : (REG_FILTER.length === 1 ? (REGIONAL_META[REG_FILTER[0]]?.label || REG_FILTER[0]) : `${REG_FILTER.length} regionales`));
     }
     if(CD_FILTER.length){
-      parts.push(CD_FILTER.length === 1 ? (ALL_CDS.find(c=>c.id===CD_FILTER[0])?.label || CD_FILTER[0]) : `${CD_FILTER.length} CDs`);
+      parts.push(CD_FILTER.includes("__NONE__") ? "0 CDs" : (CD_FILTER.length === 1 ? (ALL_CDS.find(c=>c.id===CD_FILTER[0])?.label || CD_FILTER[0]) : `${CD_FILTER.length} CDs`));
     }
     if(MONTH_FILTER.length){
-      parts.push(MONTH_FILTER.length === 1 ? MONTH_FILTER[0] : `${MONTH_FILTER.length} meses`);
+      parts.push(MONTH_FILTER.includes("__NONE__") ? "0 meses" : (MONTH_FILTER.length === 1 ? MONTH_FILTER[0] : `${MONTH_FILTER.length} meses`));
     }
     if(WEEK_FILTER.length){
-      parts.push(WEEK_FILTER.length === 1 ? `Semana ${WEEK_FILTER[0]}` : `${WEEK_FILTER.length} semanas`);
+      parts.push(WEEK_FILTER.includes("__NONE__") ? "0 semanas" : (WEEK_FILTER.length === 1 ? `Semana ${WEEK_FILTER[0]}` : `${WEEK_FILTER.length} semanas`));
     }
     if(DAY_FILTER.length){
-      parts.push(DAY_FILTER.length === 1 ? `${fdate(DAYS[DAY_FILTER[0]])} · ${DMETA[DAY_FILTER[0]].dow}` : `${DAY_FILTER.length} días`);
+      parts.push(DAY_FILTER.includes("__NONE__") || DAY_FILTER.includes(NaN) ? "0 días" : (DAY_FILTER.length === 1 ? `${fdate(DAYS[DAY_FILTER[0]])} · ${DMETA[DAY_FILTER[0]]?.dow}` : `${DAY_FILTER.length} días`));
     }
     if(CG.length){
-      parts.push(CG.length === 1 ? CG[0] : `${CG.length} cargos`);
+      parts.push(CG.includes("__NONE__") ? "0 cargos" : (CG.length === 1 ? CG[0] : `${CG.length} cargos`));
     }
     if(RG){
       parts.push(fdate(DAYS[RG.a]) + " → " + fdate(DAYS[RG.b]));
@@ -1265,6 +1291,7 @@ function buildFilterBar(){
   }
 
   document.addEventListener("click", () => {
+    openMselId = null;
     document.querySelectorAll(".msel-pop").forEach(p => p.style.display = "none");
     document.querySelectorAll(".msel-btn").forEach(b => b.classList.remove("on"));
   });
@@ -1296,7 +1323,7 @@ function buildFilterBar(){
     const regWidget = renderMultiSelect({
       id: "fReg",
       labelHtml: "🌎 Regional",
-      placeholder: "🌐 Cobertura Nacional",
+      placeholder: "Todas las regionales",
       options: regOptions,
       selectedValues: REG_FILTER,
       onChange: (vals) => { applyReg(vals); refreshAll(); draw(); }
@@ -1312,7 +1339,7 @@ function buildFilterBar(){
     const cdWidget = renderMultiSelect({
       id: "fCd",
       labelHtml: "🏭 CD / Centro",
-      placeholder: REG_FILTER.length ? `Todos los CDs` : "Todos los CDs (Nacional)",
+      placeholder: REG_FILTER.length ? `Todos los CDs` : "Todos los CDs",
       options: cdOptions,
       selectedValues: CD_FILTER,
       onChange: (vals) => { applyCd(vals); refreshAll(); draw(); }
@@ -1325,7 +1352,7 @@ function buildFilterBar(){
     }));
     const monthWidget = renderMultiSelect({
       id: "fMes",
-      labelHtml: "📅 Mes",
+      labelHtml: "📅 Meses",
       placeholder: "Todos los meses",
       options: monthOptions,
       selectedValues: MONTH_FILTER,
@@ -1334,7 +1361,7 @@ function buildFilterBar(){
 
     // 4. Semana
     let availWeeks = weekKeys();
-    if (MONTH_FILTER.length > 0) {
+    if (MONTH_FILTER.length > 0 && !MONTH_FILTER.includes("__NONE__")) {
       const mDays = DAYS.map((_, i) => i).filter(di => MONTH_FILTER.includes(DMETA[di].mes));
       availWeeks = [...new Set(mDays.map(di => String(DMETA[di].iso)))].sort((a,b) => +a - +b);
     }
@@ -1353,9 +1380,9 @@ function buildFilterBar(){
 
     // 5. Día
     let availDays = DAYS.map((_, i) => i);
-    if (WEEK_FILTER.length > 0) {
+    if (WEEK_FILTER.length > 0 && !WEEK_FILTER.includes("__NONE__")) {
       availDays = availDays.filter(di => (!MONTH_FILTER.length || MONTH_FILTER.includes(DMETA[di].mes)) && WEEK_FILTER.includes(String(DMETA[di].iso)));
-    } else if (MONTH_FILTER.length > 0) {
+    } else if (MONTH_FILTER.length > 0 && !MONTH_FILTER.includes("__NONE__")) {
       availDays = availDays.filter(di => MONTH_FILTER.includes(DMETA[di].mes));
     }
     const dayOptions = availDays.map(di => ({
@@ -1379,7 +1406,7 @@ function buildFilterBar(){
     }));
     const cargoWidget = renderMultiSelect({
       id: "fCargo",
-      labelHtml: "👤 Cargo",
+      labelHtml: "👤 Cargos",
       placeholder: "Todos los cargos",
       options: cargoOptions,
       selectedValues: CG,
