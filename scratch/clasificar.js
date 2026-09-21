@@ -12,10 +12,10 @@ export const REGLAS = {
 //   1. Retiro declarado en el GA.
 //   2. INGRESO NO ACTIVO A LA FECHA → noplan (aún no contratado, fuera del denominador).
 //   3. Trabajó (HT > 0 o marcó entrada) → asistencia. Aplica también en festivo y domingo.
-//   4. Festivo → descanso. No trabajar un festivo NO es falta, aunque Ausencias lo reporte.
+//   4. Festivo o Domingo → descanso. No trabajar un festivo o domingo NO es falta (días libres).
 //   5. Reportado en Ausencias → inasistencia. Fuente única.
 //   6. Permiso en el GA → permiso.
-//   7. Turno "Descanso" o domingo → descanso.
+//   7. Turno "Descanso" → descanso.
 //   8. "No Planificado" → noplan.
 //   9. Resto (sin plan, sin marca, sin ausencia) → descanso.
 export function clasificar({ ga, esFestivo, esDomingo, enAusencias }) {
@@ -23,10 +23,10 @@ export function clasificar({ ga, esFestivo, esDomingo, enAusencias }) {
   if (p?.retiro) return 'retiro';
   if (p?.noPlan) return 'noplan';
   if (ga.ht > 0 || ga.entro) return 'asist';
-  if (esFestivo) return 'descanso';
+  if (esFestivo || esDomingo) return 'descanso';
   if (enAusencias) return 'inas';
   if (p) return 'permiso';
-  if (ga.turno === 'Descanso' || esDomingo) return 'descanso';
+  if (ga.turno === 'Descanso') return 'descanso';
   if (ga.turno === 'No Planificado') return 'noplan';
   return 'descanso';
 }

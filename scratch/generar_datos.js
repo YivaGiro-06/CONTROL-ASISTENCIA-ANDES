@@ -326,7 +326,7 @@ function construirYEscribir() {
   for (const k of M.ausencias) {
     const [c, f] = k.split('|');
     if (estado.has(k) || f > corte || !M.personas.has(Number(c))) continue;
-    let st = FESTIVOS.has(f) ? 'descanso' : 'inas';
+    let st = (FESTIVOS.has(f) || DOM.has(f)) ? 'descanso' : 'inas';
     if (f === corte && st === 'inas') st = 'noplan'; // El día de actualización (corte) no cuenta inasistencias
     estado.set(k, st); huerfanas++;
   }
