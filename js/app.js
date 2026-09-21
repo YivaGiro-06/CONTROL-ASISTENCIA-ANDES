@@ -105,9 +105,9 @@ const fdate=f=>f.slice(8,10)+"/"+f.slice(5,7);
 const DOWF={"Lun":"Lunes","Mar":"Martes","Mié":"Miércoles","Jue":"Jueves","Vie":"Viernes","Sáb":"Sábado","Dom":"Domingo"};
 const MESK={"Enero":"01","Febrero":"02","Marzo":"03","Abril":"04","Mayo":"05","Junio":"06","Julio":"07","Agosto":"08","Septiembre":"09","Octubre":"10","Noviembre":"11","Diciembre":"12"};
 
-const T={navy:"#0B132B",navy2:"#1C2541",gold:"#0EA5E9",gold2:"#38BDF8",amber:"#D97706",blue:"#0B4E9E",blue2:"#2563EB",blue3:"#0EA5E9",red:"#E52E38",redDark:"#991B1B",green:"#059669",bg:"#F8FAFC",ink:"#0F172A",muted:"#64748B",muted2:"#94A3B8",teal:"#0D9488",purple:"#6D28D9",grid:"#E2E8F0",orange:"#D97706"};
-const CC=[T.blue,T.gold,T.navy2,T.red,T.green,T.amber,T.purple,T.teal,T.blue2,T.muted];
-if(typeof Chart!=="undefined"){Chart.defaults.font.family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";Chart.defaults.font.size=12;Chart.defaults.color=T.muted;Chart.defaults.plugins.legend.labels.usePointStyle=true;Chart.defaults.plugins.legend.labels.boxWidth=10;Chart.defaults.plugins.tooltip.backgroundColor=T.navy;Chart.defaults.plugins.tooltip.borderColor=T.gold;Chart.defaults.plugins.tooltip.borderWidth=1;Chart.defaults.plugins.tooltip.titleColor="#ffffff";Chart.defaults.plugins.tooltip.bodyColor=T.gold2;Chart.defaults.plugins.tooltip.padding=10;Chart.defaults.plugins.tooltip.cornerRadius=6;Chart.defaults.maintainAspectRatio=false;}
+const T={navy:"#0B0F19",navy2:"#1E293B",gold:"#0EA5E9",gold2:"#38BDF8",amber:"#FF6B00",blue:"#0B4E9E",blue2:"#2563EB",blue3:"#0EA5E9",red:"#E52E38",redDark:"#991B1B",green:"#059669",bg:"#F8FAFC",ink:"#0F172A",muted:"#64748B",muted2:"#94A3B8",teal:"#0D9488",purple:"#6D28D9",grid:"#E2E8F0",orange:"#FF6B00"};
+const CC=[T.blue,T.orange,T.navy2,T.red,T.green,T.gold,T.purple,T.teal,T.blue2,T.muted];
+if(typeof Chart!=="undefined"){Chart.defaults.font.family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";Chart.defaults.font.size=12;Chart.defaults.color=T.muted;Chart.defaults.plugins.legend.labels.usePointStyle=true;Chart.defaults.plugins.legend.labels.boxWidth=10;Chart.defaults.plugins.tooltip.backgroundColor=T.navy;Chart.defaults.plugins.tooltip.borderColor=T.orange;Chart.defaults.plugins.tooltip.borderWidth=1;Chart.defaults.plugins.tooltip.titleColor="#ffffff";Chart.defaults.plugins.tooltip.bodyColor=T.gold2;Chart.defaults.plugins.tooltip.padding=10;Chart.defaults.plugins.tooltip.cornerRadius=6;Chart.defaults.maintainAspectRatio=false;}
 const AG={grid:{color:T.grid,drawTicks:false},border:{display:false}};
 const AN={grid:{display:false},border:{display:false}};
 const charts={};
@@ -356,14 +356,14 @@ function inCG(pi){return !CG||!CG.length||CG.includes(PRS[pi].c);}
 let REG_FILTER=[]; // regiones seleccionadas ([] = todas)
 let CD_FILTER=[]; // CDs seleccionados ([] = todos)
 const REGIONAL_META={
-  ANDES:{id:'ANDES',label:'Regional Andes',color:'#FCA311'},
+  ANDES:{id:'ANDES',label:'Regional Andes',color:'#FF6B00'},
   NORTE:{id:'NORTE',label:'Regional Norte',color:'#2563eb'},
   CENTRO:{id:'CENTRO',label:'Regional Centro',color:'#16a34a'},
   SUR:{id:'SUR',label:'Regional Sur',color:'#7c3aed'},
 };
 const CD_META={
   // ANDES
-  ITAGUI:{label:'CD Itagüí',color:'#FCA311',region:'ANDES'},
+  ITAGUI:{label:'CD Itagüí',color:'#FF6B00',region:'ANDES'},
   OL_ITAGUI:{label:'OL Itagüí',color:'#0891b2',region:'ANDES'},
   ARMENIA:{label:'CD Armenia',color:'#16a34a',region:'ANDES'},
   OL_ARMENIA:{label:'OL Armenia',color:'#0891b2',region:'ANDES'},
