@@ -473,7 +473,7 @@ function applyScope(){
   CS=Object.values(cg).map(g=>({...g,ht:Math.round(g.ht),jornada:g.dias?Math.round(g.ht/g.dias*100)/100:0,marc_inc_pct:g.marcTot?Math.round(g.incon/g.marcTot*1000)/10:0})).sort((a,b)=>b.asist-a.asist);
   buildEvIdx();buildInconByDate();
 }
-const JLCOL=['#E2E8F0','#CBD5E1',T.cyan,T.blue2,T.amber,T.red];
+const JLCOL=['#E2E8F0','#CBD5E1','#94A3B8',T.cyan,T.blue,T.navy];
 const DECOL=[T.red,T.amber,T.green];
 function bandFilter(stream,scope,key){return stream.filter(([pi,di,b])=>{const m=DMETA[di];
   if(scope==="mes")return m.mes===key;if(scope==="sem")return String(m.iso)===String(key);
