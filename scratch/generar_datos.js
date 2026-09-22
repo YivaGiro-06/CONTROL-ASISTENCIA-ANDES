@@ -282,16 +282,30 @@ function construirYEscribir() {
   for (const f of listaFestivos.filter(f => f.coincidencia))
     console.log(`      · ${f.fecha}: dos festivos coinciden (${f.nombre}) — cuenta como un día`);
 
-  // corte = último día con actividad real (el GA trae los días futuros del mes vacíos)
+  // Regla universal: corte = máximo día de actividad que no supere el día de la actualización (hoy en horario local).
+  const hoy = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+
   let corte = CFG.corte;
   if (!corte) {
     const act = new Set();
-    for (const [k, g] of M.ga) if (g.ht > 0 || g.entro) act.add(k.split('|')[1]);
-    for (const m of M.marcas) act.add(m.f);
-    corte = [...act].sort().at(-1) || null;
+    for (const [k, g] of M.ga) {
+      const f = k.split('|')[1];
+      if (f <= hoy && (g.ht > 0 || g.entro)) act.add(f);
+    }
+    for (const m of M.marcas) {
+      if (m.f <= hoy) act.add(m.f);
+    }
+    const maxAct = [...act].sort().at(-1) || null;
+    corte = maxAct || hoy;
+  }
+  if (corte > hoy) {
+    corte = hoy;
   }
   const futuras = [...M.ga.keys()].filter(k => k.split('|')[1] > corte).length;
-  console.log(`      corte ${corte}` + (futuras ? ` · ${futuras} filas posteriores descartadas` : ''));
+  console.log(`      corte ${corte} (hoy: ${hoy})` + (futuras ? ` · ${futuras} filas posteriores descartadas` : ''));
 
   // ---- calendario: days[] y daymeta[] como los espera el frontend ----
   const MESN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
