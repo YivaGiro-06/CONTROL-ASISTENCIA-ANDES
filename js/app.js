@@ -190,7 +190,9 @@ function wireRows(root){root.querySelectorAll(".prow").forEach(el=>el.onclick=()
 /* ---------- FICHA (perfil unificado) ---------- */
 // El subtitulo refleja el filtro global vigente, no un periodo fijo.
 function rangoTxt(){
-  if(!RG) return DATA.meta.periodo;
+  const sel = typeof rangeDayIdx === "function" ? rangeDayIdx() : [];
+  if(sel && sel.length === 1) return fdateLarga(DAYS[sel[0]]);
+  if(!RG) return DATA.meta ? DATA.meta.periodo : "Todos los periodos";
   const a=DAYS[RG.a],b=DAYS[RG.b];
   return a===b ? fdateLarga(a) : (fdate(a)+" → "+fdate(b));
 }
@@ -213,6 +215,7 @@ function renderFicha(root,nombre){
     <div class="fstat"><b style="color:var(--gold)">${fmt1(p.jornada)}</b><span>Jornada h/día</span></div>
     <div class="fstat"><b style="color:var(--ink)">${fmt1(pct(p.incon,p.marcTot))}%</b><span>Marca incorrecta</span></div>
     <div class="fstat"><b style="color:var(--green)">${p.descansos}</b><span>Descansos</span></div></div>`;
+  h+=bloqueDia(nombre);
   h+=`<div class="fsec"><h4>Asistencia</h4>
     <div class="kv"><span>Asistencias</span><b>${fmt(p.asist)}</b></div>
     <div class="kv"><span>Inasistencias</span><b>${p.inas}</b></div>
@@ -235,7 +238,6 @@ function renderFicha(root,nombre){
     <div class="kv"><span>Días de descanso</span><b>${p.descansos}</b></div>
     <div class="kv"><span>Jornada promedio</span><b>${fmt1(p.jornada)} h/día</b></div>
     <div class="kv"><span>Jornadas &gt; 14 h</span><b>${p.jornadas14}</b></div></div>`;
-  h+=bloqueDia(nombre);
   const pt=Object.entries(p.permTipos||{});
   if(pt.length){h+=`<div class="fsec"><h4>Permisos por tipo</h4>`+pt.sort((a,b)=>b[1]-a[1]).map(([t,c])=>`<div class="kv"><span>${esc(t)}</span><b>${c}</b></div>`).join("")+`</div>`;}
   if(p.fechas_inas&&p.fechas_inas.length){
@@ -247,53 +249,76 @@ function renderFicha(root,nombre){
 }
 
 /* ---------- bloque "jornada del dia" de la ficha ----------
-   Solo aparece cuando el filtro global tiene UN dia seleccionado.
+   Aparece cuando el filtro global tiene UN dia seleccionado (via selector de dia o rango).
    Muestra la salida del turno anterior para explicar de donde sale el descanso:
    el descanso se le anota al dia de la ENTRADA, no al dia de la salida. */
 function bloqueDia(nombre){
-  if(!RG||RG.a!==RG.b) return "";
-  const pi=PRS.findIndex(x=>x.n===nombre); if(pi<0) return "";
-  const di=RG.a;
+  const selDays = typeof rangeDayIdx === "function" ? rangeDayIdx() : [];
+  if(!selDays || selDays.length !== 1) return "";
+  const di = selDays[0];
+  const pi = PRS.findIndex(x=>x.n===nombre); if(pi<0) return "";
+
   // El reloj repite la misma marca hasta 3 veces; se descartan los duplicados del
   // mismo tipo dentro de 10 min. Solo aqui: el conteo global las conserva todas.
-  const crudas=A_MET.filter(r=>r[0]===pi&&r[1]===di&&r.length>4).sort((a,b)=>a[3]-b[3]);
-  const hoy=[];
-  for(const r of crudas){const p2=hoy[hoy.length-1];if(p2&&p2[4]===r[4]&&r[3]-p2[3]<10)continue;hoy.push(r);}
-  if(!hoy.length) return `<div class="fsec"><h4>Jornada del día</h4><div class="kv"><span>Marcaciones</span><b>sin registro</b></div></div>`;
-  const ing=hoy.filter(r=>r[4]===0), sal=hoy.filter(r=>r[4]===1);
-  if(!ing.length) return `<div class="fsec"><h4>Jornada del día</h4><div class="kv"><span>Entrada</span><b>sin registrar</b></div></div>`;
-  const e=ing[0][3];
+  const crudas = (A_MET || []).filter(r => r[0] === pi && r[1] === di && r.length > 4).sort((a,b) => a[3] - b[3]);
+  const hoy = [];
+  for(const r of crudas){ const p2 = hoy[hoy.length-1]; if(p2 && p2[4] === r[4] && r[3] - p2[3] < 10) continue; hoy.push(r); }
+
+  const dateTxt = fdateLarga(DAYS[di]);
+
+  let out = `<div class="fsec fsec--highlight" style="border-left:4px solid var(--orange,#FF6B00);background:#FFFBF5;">`;
+  out += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid #FED7AA;padding-bottom:6px;">`
+       + `<h4 style="margin:0;color:#C2410C;font-size:12px;font-weight:800;letter-spacing:0.04em;">JORNADA DEL DÍA · ${esc(dateTxt).toUpperCase()}</h4>`
+       + `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:#FFEDD5;color:#C2410C;">${fdate(DAYS[di])}</span>`
+       + `</div>`;
+
+  if(!hoy.length) {
+    out += `<div class="kv"><span>Marcaciones</span><b style="color:var(--muted)">Sin registro de marcaciones en este día</b></div></div>`;
+    return out;
+  }
+
+  const ing = hoy.filter(r => r[4] === 0), sal = hoy.filter(r => r[4] === 1);
+  if(!ing.length) {
+    out += `<div class="kv"><span>Entrada</span><b style="color:var(--red)">Sin registrar (inconsistencia)</b></div>`;
+    if(sal.length) out += `<div class="kv"><span>Salida</span><b>${hhmm(sal[sal.length-1][3])}</b></div>`;
+    out += `</div>`;
+    return out;
+  }
+
+  const e = ing[0][3];
   // salida del turno: la ultima posterior a la entrada (evita tomar el cierre del turno anterior)
-  const sHoy=sal.filter(r=>r[3]>e);
-  const s=sHoy.length?sHoy[sHoy.length-1][3]:null;
+  const sHoy = sal.filter(r => r[3] > e);
+  const s = sHoy.length ? sHoy[sHoy.length-1][3] : null;
 
   // ultima salida anterior: se busca hacia atras hasta 3 dias
-  let prev=null,prevDi=null;
-  for(let k=di-1;k>=Math.max(0,di-3)&&prev===null;k--){
-    const ss=A_MET.filter(r=>r[0]===pi&&r[1]===k&&r.length>4&&r[4]===1).sort((a,b)=>a[3]-b[3]);
-    // (una sola salida basta; los duplicados tienen la misma hora)
-    if(ss.length){prev=ss[ss.length-1][3];prevDi=k;}
+  let prev = null, prevDi = null;
+  for(let k = di - 1; k >= Math.max(0, di - 3) && prev === null; k--){
+    const ss = (A_MET || []).filter(r => r[0] === pi && r[1] === k && r.length > 4 && r[4] === 1).sort((a,b) => a[3] - b[3]);
+    if(ss.length){ prev = ss[ss.length-1][3]; prevDi = k; }
   }
-  let out=`<div class="fsec"><h4>Jornada del día</h4>`;
-  if(prev!==null){
-    const desc=((di-prevDi)*1440+e-prev)/60;
-    out+=`<div class="kv"><span>Salida ${DOWL[new Date(DAYS[prevDi]+"T00:00:00").getDay()]}</span><b>${hhmm(prev)}</b></div>`;
-    out+=`<div class="kv"><span>Entrada ${DOWL[new Date(DAYS[di]+"T00:00:00").getDay()]}</span><b>${hhmm(e)}</b></div>`;
-    if(s!==null) out+=`<div class="kv"><span>Salida ${DOWL[new Date(DAYS[di]+"T00:00:00").getDay()]}</span><b>${hhmm(s)}</b></div>`;
-    else out+=`<div class="kv"><span>Salida</span><b style="color:var(--muted2)">turno sin cerrar</b></div>`;
-    const col=desc<10?T.red:T.green, et=desc<10?"no efectivo":"efectivo";
-    out+= desc>24
-      ? `<div class="kv"><span>Descanso previo</span><b style="color:var(--green)">descansó el día anterior</b></div>`
-      : `<div class="kv"><span>Descansó</span><b style="color:${col}">${dur(desc)} · ${et}</b></div>`;
-  }else{
-    out+=`<div class="kv"><span>Entrada</span><b>${hhmm(e)}</b></div>`;
-    if(s!==null) out+=`<div class="kv"><span>Salida</span><b>${hhmm(s)}</b></div>`;
-    out+=`<div class="kv"><span>Descanso previo</span><b style="color:var(--muted2)">sin turno anterior</b></div>`;
+
+  if(prev !== null){
+    const desc = ((di - prevDi) * 1440 + e - prev) / 60;
+    const prevDayName = DOWL[new Date(DAYS[prevDi]+"T00:00:00").getDay()];
+    out += `<div class="kv"><span>Salida turno ant. (${prevDayName} ${fdate(DAYS[prevDi])})</span><b>${hhmm(prev)}</b></div>`;
+    out += `<div class="kv"><span>Entrada de este día (${fdate(DAYS[di])})</span><b style="color:#0B4E9E">${hhmm(e)}</b></div>`;
+    if(s !== null) out += `<div class="kv"><span>Salida de este día (${fdate(DAYS[di])})</span><b style="color:#0B4E9E">${hhmm(s)}</b></div>`;
+    else out += `<div class="kv"><span>Salida de este día</span><b style="color:var(--muted2)">Turno sin cerrar</b></div>`;
+
+    const col = desc < 10 ? T.red : T.green;
+    const et = desc < 10 ? "descanso no efectivo (< 10 h)" : "descanso efectivo";
+    out += desc > 24
+      ? `<div class="kv"><span>Horas de descanso previo</span><b style="color:var(--green)">> 24 h (descansó día anterior)</b></div>`
+      : `<div class="kv"><span>Horas que descansó</span><b style="color:${col}">${dur(desc)} <small style="font-weight:600">(${et})</small></b></div>`;
+  } else {
+    out += `<div class="kv"><span>Entrada (${fdate(DAYS[di])})</span><b style="color:#0B4E9E">${hhmm(e)}</b></div>`;
+    if(s !== null) out += `<div class="kv"><span>Salida (${fdate(DAYS[di])})</span><b style="color:#0B4E9E">${hhmm(s)}</b></div>`;
+    out += `<div class="kv"><span>Descanso previo</span><b style="color:var(--muted2)">Sin turno anterior registrado</b></div>`;
   }
-  if(s!==null) out+=`<div class="kv"><span>Trabajó</span><b>${dur((s-e)/60)}</b></div>`;
-  if(ing.length>1) out+=`<div class="kv"><span>Otras entradas</span><b>${ing.slice(1).map(r=>hhmm(r[3])).join(", ")}</b></div>`;
-  if(sHoy.length>1) out+=`<div class="kv"><span>Otras salidas</span><b>${sHoy.slice(0,-1).map(r=>hhmm(r[3])).join(", ")}</b></div>`;
-  return out+`</div>`;
+  if(s !== null) out += `<div class="kv"><span>Horas trabajadas</span><b>${dur((s - e) / 60)}</b></div>`;
+  if(ing.length > 1) out += `<div class="kv"><span>Otras entradas</span><b>${ing.slice(1).map(r => hhmm(r[3])).join(", ")}</b></div>`;
+  if(sHoy.length > 1) out += `<div class="kv"><span>Otras salidas</span><b>${sHoy.slice(0, -1).map(r => hhmm(r[3])).join(", ")}</b></div>`;
+  return out + `</div>`;
 }
 
 /* ---------- per-day streams + rankings ---------- */
